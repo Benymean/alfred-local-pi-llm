@@ -46,6 +46,30 @@ Quick smoke test:
 ./scripts/eval_alfred_model.py --backend live --suite quick --warmup 1 --label quick-check
 ```
 
+Generalization test with different prompts:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite generalization --warmup 1 --label generalization-check
+```
+
+Fresh rotating prompt sample:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite rotation --sample 24 --random-seed --warmup 1 --label rotation-sample
+```
+
+Raw model behavior without deterministic fast replies:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite generalization --raw-model --warmup 1 --label raw-generalization
+```
+
+Fresh raw-model sample for prompt tuning:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite rotation --raw-model --sample 24 --random-seed --warmup 1 --label raw-rotation
+```
+
 Mock backend test without the model server:
 
 ```bash
@@ -84,3 +108,21 @@ Start with the Markdown report:
 - Large prompt word counts usually point to memory or prompt-size overhead.
 
 Then open the JSONL trace for a bad row and inspect `messages`, `prepared_user_text`, `profile`, and `backend_metrics`.
+
+Use `--raw-model` when you want to measure whether prompt changes made the local model itself better, not whether Alfred's product-layer fast replies handled a prompt.
+
+## Avoiding Overfitting
+
+Use the suites differently:
+
+- `validation`: fixed regression test. Good for comparing against old runs, but not enough for model-quality claims.
+- `generalization`: fixed held-out set. Good for checking whether changes transfer to prompts that were not in the original validation list.
+- `rotation`: larger prompt bank. Use `--sample` and `--random-seed` so each tuning pass sees a fresh subset.
+- `--prompts-file`: best for true blind tests. Keep a local file of prompts Alfred has never been tuned against.
+
+Recommended loop:
+
+1. Tune against one raw rotating sample.
+2. Check the fixed `validation` suite for regressions.
+3. Check `generalization` or a private prompt file before accepting the change.
+4. Do not add hardcoded factual answers just to improve a benchmark score.

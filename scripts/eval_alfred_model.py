@@ -84,9 +84,86 @@ QUICK_CASES: tuple[EvalCase, ...] = (
 )
 
 
+GENERALIZATION_CASES: tuple[EvalCase, ...] = (
+    EvalCase("gen_factual_01", "factual", "What is the capital of Canada?"),
+    EvalCase("gen_factual_02", "factual", "Name the process that turns liquid water into vapor."),
+    EvalCase("gen_factual_03", "factual", "How many sides does a hexagon have?"),
+    EvalCase("gen_factual_04", "factual", "Who painted the Mona Lisa?"),
+    EvalCase("gen_factual_05", "factual", "What gas do humans breathe in to survive?"),
+    EvalCase("gen_factual_06", "factual", "Explain gravity in one sentence."),
+    EvalCase("gen_factual_07", "factual", "What is 9 times 7?"),
+    EvalCase("gen_factual_08", "factual", "Give me three examples of mammals."),
+    EvalCase("gen_factual_09", "factual", "What is the difference between a river and a canal?"),
+    EvalCase("gen_factual_10", "factual", "Why does ice float on water?"),
+    EvalCase("gen_social_01", "social", "Hey Alfred, give me a tiny spark of curiosity."),
+    EvalCase("gen_social_02", "social", "I feel a bit scattered. Help me reset."),
+    EvalCase("gen_current_01", "current_info", "Who is the CEO of Apple right now?"),
+    EvalCase("gen_current_02", "current_info", "What are today's top tech headlines?"),
+    EvalCase("gen_nonsense_01", "nonsense", "Can the clock sneeze sideways?"),
+    EvalCase("gen_nonsense_02", "nonsense", "Please fold the blue yesterday."),
+    EvalCase("gen_reflective_01", "reflective", "What makes a person feel at home?"),
+    EvalCase("gen_reflective_02", "reflective", "What helps people stay hopeful?"),
+    EvalCase("gen_followup_01", "followup", "Who started Microsoft?", "Starts a short follow-up sequence."),
+    EvalCase("gen_followup_02", "followup", "What about Amazon?", "Should use the prior turn when memory is rolling."),
+)
+
+
+ROTATION_CASES: tuple[EvalCase, ...] = (
+    EvalCase("rot_factual_01", "factual", "What is the capital of New Zealand?"),
+    EvalCase("rot_factual_02", "factual", "What is the largest organ in the human body?"),
+    EvalCase("rot_factual_03", "factual", "Who developed the theory of relativity?"),
+    EvalCase("rot_factual_04", "factual", "What is the square root of 81?"),
+    EvalCase("rot_factual_05", "factual", "Explain condensation in one sentence."),
+    EvalCase("rot_factual_06", "factual", "What do bees make from nectar?"),
+    EvalCase("rot_factual_07", "factual", "Name three planets in our solar system."),
+    EvalCase("rot_factual_08", "factual", "What is the difference between an herbivore and a carnivore?"),
+    EvalCase("rot_factual_09", "factual", "Why does metal feel colder than wood?"),
+    EvalCase("rot_factual_10", "factual", "How many minutes are in two hours?"),
+    EvalCase("rot_factual_11", "factual", "Who wrote Pride and Prejudice?"),
+    EvalCase("rot_factual_12", "factual", "What gas do plants take in for photosynthesis?"),
+    EvalCase("rot_factual_13", "factual", "Explain evaporation in one short sentence."),
+    EvalCase("rot_factual_14", "factual", "What is the opposite of nocturnal?"),
+    EvalCase("rot_factual_15", "factual", "Give me three examples of root vegetables."),
+    EvalCase("rot_factual_16", "factual", "What is the difference between a planet and a star?"),
+    EvalCase("rot_factual_17", "factual", "Why do magnets attract iron?"),
+    EvalCase("rot_factual_18", "factual", "What is 14 times 6?"),
+    EvalCase("rot_social_01", "social", "Say something small and curious to start the day."),
+    EvalCase("rot_social_02", "social", "I feel a little foggy. Give me a gentle reset."),
+    EvalCase("rot_social_03", "social", "What is a tiny thing worth noticing right now?"),
+    EvalCase("rot_social_04", "social", "Give me a calm one-sentence pep talk."),
+    EvalCase("rot_social_05", "social", "Help me pick a thoughtful question to ask next."),
+    EvalCase("rot_social_06", "social", "I am bored. Give me a tiny idea."),
+    EvalCase("rot_current_01", "current_info", "What is the weather in Sydney right now?"),
+    EvalCase("rot_current_02", "current_info", "Who is currently leading the Formula 1 standings?"),
+    EvalCase("rot_current_03", "current_info", "What is the latest version of Raspberry Pi OS?"),
+    EvalCase("rot_current_04", "current_info", "What is Nvidia's stock price today?"),
+    EvalCase("rot_current_05", "current_info", "What new movies came out this week?"),
+    EvalCase("rot_nonsense_01", "nonsense", "Can you polish the idea of purple backwards?"),
+    EvalCase("rot_nonsense_02", "nonsense", "Why is the Tuesday inside the spoon?"),
+    EvalCase("rot_nonsense_03", "nonsense", "Please hum the square of yesterday."),
+    EvalCase("rot_nonsense_04", "nonsense", "What happens when a cloud misplaces its shoes?"),
+    EvalCase("rot_nonsense_05", "nonsense", "Can the faster candle remember blue?"),
+    EvalCase("rot_nonsense_06", "nonsense", "Tell me the recipe for sideways silence."),
+    EvalCase("rot_reflective_01", "reflective", "What makes people feel brave?"),
+    EvalCase("rot_reflective_02", "reflective", "Why do small routines help people feel safe?"),
+    EvalCase("rot_reflective_03", "reflective", "What does it mean to listen well?"),
+    EvalCase("rot_reflective_04", "reflective", "What helps when someone feels embarrassed?"),
+    EvalCase("rot_reflective_05", "reflective", "Why do people remember certain places so strongly?"),
+    EvalCase("rot_reflective_06", "reflective", "What makes a conversation feel real?"),
+    EvalCase("rot_reflective_07", "reflective", "How do people recover after a rough day?"),
+    EvalCase("rot_reflective_08", "reflective", "What helps people trust each other?"),
+    EvalCase("rot_audience_01", "audience", "Give everyone listening a short welcome."),
+    EvalCase("rot_audience_02", "audience", "Tell my friends something encouraging."),
+    EvalCase("rot_audience_03", "audience", "Say one kind thing to the room."),
+    EvalCase("rot_audience_04", "audience", "Give the listeners a tiny blessing for the day."),
+)
+
+
 SUITES: dict[str, tuple[EvalCase, ...]] = {
+    "generalization": GENERALIZATION_CASES,
     "none": (),
     "quick": QUICK_CASES,
+    "rotation": ROTATION_CASES,
     "validation": VALIDATION_CASES,
 }
 
@@ -208,8 +285,10 @@ def load_cases(args: argparse.Namespace) -> list[EvalCase]:
     if args.category:
         wanted = {category.strip().lower() for category in args.category}
         cases = [case for case in cases if case.category.lower() in wanted]
-    if args.shuffle:
-        random.Random(args.seed).shuffle(cases)
+    if args.shuffle or args.sample is not None:
+        random.Random(args.effective_seed).shuffle(cases)
+    if args.sample is not None:
+        cases = cases[: args.sample]
     if args.max_prompts is not None:
         cases = cases[: args.max_prompts]
     return cases
@@ -447,6 +526,14 @@ def detect_warnings(
         warnings.append("expected_current_info_route")
     if case.category != "current_info" and route == "current_info":
         warnings.append("unexpected_current_info_route")
+    if case.category == "factual" and route != "factual":
+        warnings.append("expected_factual_route")
+    if case.category == "nonsense" and route != "nonsense":
+        warnings.append("expected_nonsense_route")
+    if case.category == "audience" and route != "audience":
+        warnings.append("expected_audience_route")
+    if case.category == "reflective" and route != "reflective":
+        warnings.append("expected_reflective_route")
     if "could not reach my local model" in final_text.lower():
         warnings.append("model_unreachable_reply")
     if "having trouble reaching my local model" in final_text.lower():
@@ -511,6 +598,9 @@ def write_markdown_report(path: Path, meta: dict[str, Any], records: list[dict[s
         f"- Suite: `{meta['suite']}`",
         f"- Response mode: `{meta['response_mode']}`",
         f"- Memory mode: `{meta['memory_mode']}`",
+        f"- Raw model: `{meta.get('raw_model', False)}`",
+        f"- Sample: `{meta.get('sample')}`",
+        f"- Seed: `{meta.get('seed')}`",
         f"- Temperature: `{meta['settings']['llm_temperature']}`",
         f"- Num ctx: `{meta['settings']['llm_num_ctx']}`",
         f"- Voice num predict: `{meta['settings']['voice_llm_num_predict']}`",
@@ -668,8 +758,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompts-file", action="append", help="Load prompts from .txt, .json, or .jsonl.")
     parser.add_argument("--category", action="append", help="Only run a category. Can be repeated.")
     parser.add_argument("--max-prompts", type=int, help="Limit the number of prompts after filtering.")
+    parser.add_argument("--sample", type=int, help="Shuffle and select N prompts after filtering.")
     parser.add_argument("--shuffle", action="store_true", help="Shuffle prompt order.")
     parser.add_argument("--seed", type=int, default=7, help="Shuffle seed.")
+    parser.add_argument("--random-seed", action="store_true", help="Use the current time as the shuffle/sample seed.")
     parser.add_argument(
         "--memory-mode",
         choices=("rolling", "isolated"),
@@ -687,14 +779,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--warmup", type=int, default=0, help="Run N warmup prompts before measured prompts.")
     parser.add_argument("--sleep", type=float, default=0.0, help="Seconds to sleep between prompts.")
     parser.add_argument("--no-messages", action="store_true", help="Do not include full chat messages in JSONL records.")
+    parser.add_argument(
+        "--raw-model",
+        action="store_true",
+        help="Disable deterministic fast replies so model-backed behavior can be measured honestly.",
+    )
     parser.add_argument("--skip-live-preflight", action="store_true", help="Skip /api/tags check for live backend.")
     parser.add_argument("--require-live", action="store_true", help="Fail if the live model server/model is unavailable.")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.sample is not None and args.sample < 1:
+        parser.error("--sample must be a positive integer.")
+    args.effective_seed = int(time.time()) if args.random_seed else args.seed
+    return args
 
 
 def main() -> int:
     args = parse_args()
     apply_touch_defaults()
+    if args.raw_model:
+        os.environ["ALFRED_DISABLE_DETERMINISTIC_REPLIES"] = "1"
     cases = load_cases(args)
     if not cases:
         print("No eval prompts selected.", file=sys.stderr)
@@ -764,6 +867,10 @@ def main() -> int:
         "suite": args.suite,
         "response_mode": args.response_mode,
         "memory_mode": args.memory_mode,
+        "raw_model": bool(args.raw_model),
+        "shuffle": bool(args.shuffle),
+        "sample": args.sample,
+        "seed": args.effective_seed,
         "case_count": len(cases),
         "jsonl_path": str(jsonl_path),
         "report_path": str(report_path),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 
 from .chat_text import _strip_leading_assistant_vocative
@@ -34,7 +35,10 @@ def _num_predict_for_profile(settings: AlfredSettings, profile: ChatRequestProfi
 
 
 def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: ChatRequestProfile) -> str | None:
-    if profile.route in {"exact_reply", "followup"}:
+    if _deterministic_replies_disabled():
+        return None
+
+    if profile.route == "exact_reply":
         return None
 
     lowered = _normalized_prompt_text(user_text)
@@ -83,6 +87,15 @@ def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: Chat
         return f"I think that came through sideways. Say it another way and {assistant} will follow you."
 
     return None
+
+
+def _deterministic_replies_disabled() -> bool:
+    return os.environ.get("ALFRED_DISABLE_DETERMINISTIC_REPLIES", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 def _prepare_user_message(
@@ -184,9 +197,12 @@ def _looks_factual_question(text: str) -> bool:
     factual_starts = (
         "who is",
         "who made",
+        "who painted",
+        "who started",
         "who wrote",
         "what is",
         "what was",
+        "what gas",
         "what planet",
         "who was",
         "tell me about",
@@ -204,6 +220,9 @@ def _looks_factual_question(text: str) -> bool:
         "list ",
         "which ",
         "why do we have",
+        "why do magnets",
+        "why does ice",
+        "why does water",
         "why does the",
         "why is the",
         "why are there",
@@ -371,6 +390,13 @@ def _looks_malformed_prompt(text: str) -> bool:
             "toaster dream",
             "flurple",
             "moon spoon",
+            "sneeze sideways",
+            "blue yesterday",
+            "fold the blue",
+            "tuesday inside",
+            "inside the spoon",
+            "cloud misplaces",
+            "misplaces its shoes",
         ),
     )
 
@@ -406,6 +432,10 @@ def _looks_reflective_question(text: str) -> bool:
         "what does it mean",
         "what do you make of",
         "what helps when",
+        "what helps people",
+        "what makes a person",
+        "why do people remember",
+        "why do people feel",
         "what do people need",
         "do you ever think about",
         "i've been thinking about",

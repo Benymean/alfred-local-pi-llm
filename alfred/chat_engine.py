@@ -3,15 +3,18 @@ from __future__ import annotations
 from .chat_runtime import (
     _build_system_prompt,
     _current_info_reply,
+    _deterministic_reply,
     _looks_contextual_followup,
     _looks_detail_request,
     _looks_emotional_prompt,
     _looks_exact_reply_instruction,
     _looks_factual_question,
+    _looks_malformed_prompt,
     _looks_media_question,
     _looks_open_ended_companion_prompt,
     _looks_reflective_question,
     _looks_social_prompt,
+    _looks_audience_prompt,
     _needs_current_info,
     _num_predict_for_profile,
     _prepare_user_message,
@@ -36,6 +39,13 @@ class AlfredChatEngine:
             if profile.remember_exchange:
                 self.memory.record_exchange(user_text, text)
             return AssistantReply(text=text, show_text=show_text, reason=reason)
+
+        deterministic_text = _deterministic_reply(self.settings, user_text, profile)
+        if deterministic_text is not None:
+            show_text, reason = _should_show_reply_text(deterministic_text, self.settings.transcript_char_threshold)
+            if profile.remember_exchange:
+                self.memory.record_exchange(user_text, deterministic_text)
+            return AssistantReply(text=deterministic_text, show_text=show_text, reason=reason)
 
         prompt_user_text = _prepare_user_message(self.settings, user_text, response_mode=response_mode, profile=profile)
         messages = self.memory.build_messages(
@@ -62,6 +72,11 @@ class AlfredChatEngine:
         profile = self.profile_for(user_text, response_mode=response_mode)
         if profile.current_info:
             yield _current_info_reply()
+            return
+
+        deterministic_text = _deterministic_reply(self.settings, user_text, profile)
+        if deterministic_text is not None:
+            yield deterministic_text
             return
 
         prompt_user_text = _prepare_user_message(self.settings, user_text, response_mode=response_mode, profile=profile)
@@ -95,14 +110,16 @@ class AlfredChatEngine:
     def profile_for(self, user_text: str, response_mode: str = "default") -> ChatRequestProfile:
         social = _looks_social_prompt(user_text)
         contextual_followup = _looks_contextual_followup(user_text)
-        standalone_social = social and not contextual_followup
+        open_ended = _looks_open_ended_companion_prompt(user_text)
+        standalone_social = (social or open_ended) and not contextual_followup
         factual = _looks_factual_question(user_text)
         media = _looks_media_question(user_text)
         current_info = _needs_current_info(user_text)
         exact_reply = _looks_exact_reply_instruction(user_text)
         reflective = _looks_reflective_question(user_text)
         emotional = _looks_emotional_prompt(user_text)
-        open_ended = _looks_open_ended_companion_prompt(user_text)
+        audience = _looks_audience_prompt(user_text)
+        malformed = _looks_malformed_prompt(user_text)
         explicit_detail = _looks_detail_request(user_text)
 
         if current_info:
@@ -111,7 +128,11 @@ class AlfredChatEngine:
             route = "exact_reply"
         elif contextual_followup:
             route = "followup"
-        elif reflective or emotional or open_ended:
+        elif malformed:
+            route = "nonsense"
+        elif audience:
+            route = "audience"
+        elif reflective or emotional:
             route = "reflective"
         elif factual:
             route = "factual"
@@ -133,7 +154,7 @@ class AlfredChatEngine:
         ack_delay_seconds = 2.6 if social else 1.5
         if response_mode != "voice":
             ack_delay_seconds = 1.5
-        remember_exchange = route not in {"current_info", "exact_reply"} and not (
+        remember_exchange = route not in {"current_info", "exact_reply", "audience", "nonsense"} and not (
             route == "casual" and standalone_social
         )
 

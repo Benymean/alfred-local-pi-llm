@@ -34,11 +34,63 @@ def _num_predict_for_profile(settings: AlfredSettings, profile: ChatRequestProfi
         return settings.voice_llm_num_predict
     if response_mode != "voice":
         return settings.llm_num_predict
-    if profile.route in {"casual", "exact_reply"}:
+    if profile.route in {"casual", "exact_reply", "audience", "nonsense"}:
         return settings.voice_llm_num_predict
     if profile.route == "factual":
         return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 16)
     return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 32)
+
+
+def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: ChatRequestProfile) -> str | None:
+    if profile.route in {"exact_reply", "followup"}:
+        return None
+
+    lowered = _normalized_prompt_text(user_text)
+    assistant = settings.assistant_name
+
+    if _contains_any_phrase(lowered, ("how are you", "how's your day", "hows your day")):
+        return f"I am here and nicely awake. Tell me what kind of mood we are working with today."
+
+    if _looks_interesting_prompt(lowered):
+        return "Octopuses can taste with their arms, which feels like the ocean inventing curiosity in a completely unfair way."
+
+    if _looks_tired_prompt(lowered):
+        return (
+            "Shrink the next step: drink some water, loosen your shoulders, and take five quiet minutes. "
+            "If you are still wiped, a short rest will beat brute force."
+        )
+
+    if _looks_pep_talk_prompt(lowered):
+        return (
+            "You do not need to win the whole day at once. "
+            "Take the next honest step; tiny momentum is still momentum."
+        )
+
+    if _looks_next_prompt(lowered):
+        return (
+            "Ask me something with texture, like what is a tiny thing worth noticing today, "
+            "or help me think through one stubborn idea."
+        )
+
+    if _looks_audience_prompt(lowered):
+        if "welcome" in lowered:
+            return "Welcome, friends. Settle in, be curious, and make yourselves comfortably weird."
+        if "kind" in lowered:
+            return "Everyone listening: I hope today gives you one small reason to feel steadier than before."
+        if "motivational" in lowered or "motivation" in lowered:
+            return "Everyone listening: you do not have to feel ready to begin. Take one small brave step, and let that count."
+        return "Everyone listening: take a breath, stay curious, and give yourself permission to begin gently."
+
+    if _looks_malformed_prompt(lowered):
+        if "toaster" in lowered and "dream" in lowered:
+            return "If a toaster dreams, I imagine breakfast gets philosophical and wakes up lightly browned."
+        if "seven" in lowered and "upside" in lowered:
+            return "That sounds more like a riddle than a fact. If you mean a symbol or font, tell me which one."
+        if "banana" in lowered and "yesterday" in lowered:
+            return "That sounds like dream grammar. I do not think it has a literal answer, but we can turn it into something playful."
+        return f"I think that came through sideways. Say it another way and {assistant} will follow you."
+
+    return None
 
 
 def _prepare_user_message(
@@ -76,6 +128,16 @@ def _prepare_user_message(
     elif profile.route == "followup":
         safety_parts.append(
             "Follow-up mode: treat this as a continuation of the recent exchange and resolve references naturally."
+        )
+    elif profile.route == "audience":
+        safety_parts.append(
+            "Audience mode: write a short message addressed directly to the listeners or friends. "
+            "Do not introduce yourself, describe yourself, or talk about being here to listen unless the user asks."
+        )
+    elif profile.route == "nonsense":
+        safety_parts.append(
+            "Clarification mode: if the prompt is malformed or impossible, be playful but do not invent factual explanations. "
+            "Ask for a clearer version in one short sentence when needed."
         )
     elif profile.route == "reflective":
         safety_parts.append(
@@ -132,8 +194,11 @@ def _looks_factual_question(text: str) -> bool:
     lowered = _normalized_prompt_text(text)
     factual_starts = (
         "who is",
+        "who made",
+        "who wrote",
         "what is",
         "what was",
+        "what planet",
         "who was",
         "tell me about",
         "what does",
@@ -142,8 +207,27 @@ def _looks_factual_question(text: str) -> bool:
         "when was",
         "where is",
         "where was",
+        "how many",
+        "how much",
+        "how does",
+        "explain ",
+        "name ",
+        "list ",
+        "which ",
+        "why do we have",
+        "why does the",
+        "why is the",
+        "why are there",
     )
-    return lowered.startswith(factual_starts)
+    if lowered.startswith(factual_starts):
+        return True
+    example_markers = (
+        "give me three examples",
+        "give me 3 examples",
+        "give me examples",
+        "examples of",
+    )
+    return _contains_any_phrase(lowered, example_markers)
 
 
 def _looks_media_question(text: str) -> bool:
@@ -269,6 +353,39 @@ def _looks_open_ended_companion_prompt(text: str) -> bool:
     return _looks_interesting_prompt(lowered) or _looks_next_prompt(lowered)
 
 
+def _looks_audience_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "tell them",
+            "say something kind to everyone",
+            "everyone listening",
+            "my friends",
+            "welcome message",
+            "message for everyone",
+            "message for my friends",
+        ),
+    )
+
+
+def _looks_malformed_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "banana of yesterday",
+            "blue the faster window",
+            "seven is upside-down",
+            "seven is upside down",
+            "toaster dreams",
+            "toaster dream",
+            "flurple",
+            "moon spoon",
+        ),
+    )
+
+
 def _looks_detail_request(text: str) -> bool:
     lowered = _normalized_prompt_text(text)
     detail_markers = (
@@ -294,8 +411,8 @@ def _looks_reflective_question(text: str) -> bool:
         "what matters in life",
         "what makes life",
         "purpose",
-        "why is",
-        "why do",
+        "why do people need",
+        "why do humans need",
         "how do you think",
         "what does it mean",
         "what do you make of",

@@ -6,9 +6,18 @@ import re
 def _clean_reply(text: str) -> str:
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
+    text = _strip_voice_hostile_formatting(text)
     text = text.replace("\r", " ").strip()
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
+
+
+def _strip_voice_hostile_formatting(text: str) -> str:
+    text = re.sub(r"(^|\s)[*_]([^*_]+)[*_](?=\s|[.!?,;:]|$)", r"\1\2", text)
+    text = re.sub(r"[\U0001F300-\U0001FAFF\U00002700-\U000027BF\u2600-\u26FF\ufe0f]", "", text)
+    text = re.sub(r"\s+([.!?,;:])", r"\1", text)
+    text = re.sub(r"\s{2,}", " ", text)
+    return text
 
 
 def _trim_truncated_reply(text: str) -> str:

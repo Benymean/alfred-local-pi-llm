@@ -136,7 +136,7 @@ def _prepare_user_message(
         )
     elif profile.route == "audience":
         safety_parts.append(
-            "Audience: speak directly to the listeners. Do not introduce yourself."
+            "Audience: address listeners directly. For Alfred, project, demo, or offline-AI prompts, say Alfred is a local offline AI companion on a Raspberry Pi. Do not claim private learning."
         )
     elif profile.route == "nonsense":
         safety_parts.append(
@@ -144,11 +144,11 @@ def _prepare_user_message(
         )
     elif profile.route == "reflective":
         safety_parts.append(
-            "Reflective: be grounded, concrete, and plain. No fake anecdotes, poetic metaphors, slogans, or therapy-speak."
+            "Reflective: grounded, concrete, plain. No fake anecdotes, poetic metaphors, slogans, therapy-speak, or repeated filler."
         )
     elif profile.route == "factual":
         safety_parts.append(
-            "Factual: give the core answer first. Be brief. If unsure, say so; do not guess. Use plain sentences, not lists."
+            "Factual: core answer first; brief. If unsure, say so. Broad history or science: give several established examples, not one modern guess. No lists."
         )
         if profile.media:
             safety_parts.append(
@@ -161,9 +161,9 @@ def _prepare_user_message(
 
     if response_mode == "voice":
         if profile.route == "factual":
-            max_words = min(settings.voice_reply_max_words, 42)
+            max_words = min(settings.voice_reply_max_words, 36)
             safety_parts.append(
-                f"Voice: use 1 or 2 short sentences, under about {max_words} words. If asked for examples, use a comma-separated sentence. Stop after the answer."
+                f"Voice: 1 or 2 short sentences under about {max_words} words. Examples or technologies should be comma-separated. Stop."
             )
         elif profile.route in {"reflective", "followup"} or profile.wants_detail:
             max_words = min(settings.voice_detail_max_words, 58)

@@ -41,7 +41,7 @@ if [[ -z "$BROWSER_CMD" ]]; then
 fi
 
 echo "Starting Alfred Touch..." >"$LOG_FILE"
-if ! "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh" >>"$LOG_FILE" 2>&1; then
+if ! bash "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh" >>"$LOG_FILE" 2>&1; then
   echo "Alfred touch bootstrap failed. Check $LOG_FILE" >&2
   exit 1
 fi

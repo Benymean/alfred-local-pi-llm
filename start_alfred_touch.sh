@@ -11,7 +11,7 @@ echo "Starting Alfred Touch..."
 PYTHON_CMD="$(alfred_touch_python_cmd)"
 
 if [[ "${ALFRED_SKIP_BOOTSTRAP:-0}" != "1" ]]; then
-  "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh"
+  bash "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh"
 fi
 
 if ! "$PYTHON_CMD" -c "import fastapi, uvicorn, jinja2, requests, multipart" >/dev/null 2>&1; then

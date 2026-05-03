@@ -88,6 +88,12 @@ LinkedIn/demo audience test without hardcoded fast replies:
 ./scripts/eval_alfred_model.py --backend live --suite linkedin --warmup 1 --label linkedin-demo
 ```
 
+Broader social/demo audience test:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite social_demo --warmup 1 --label social-demo
+```
+
 Mock backend test without the model server:
 
 ```bash
@@ -125,6 +131,7 @@ Start with the Markdown report:
 - `missing_expected_terms:...` means a harder factual prompt missed one or more anchor concepts.
 - `unexpected_deterministic_reply` means a prompt that should reach the model was answered by a fast reply.
 - `duplicate_answer_text` means multiple LinkedIn/demo prompts produced the same answer text.
+- `canned_demo_phrase` means a social/demo answer used a known canned or awkward phrase.
 - `unexpected_current_info_route` means Alfred refused a stable question as if it needed live lookup.
 - Large prompt word counts usually point to memory or prompt-size overhead.
 
@@ -141,6 +148,7 @@ Use the suites differently:
 - `rotation`: larger prompt bank. Use `--sample` and `--random-seed` so each tuning pass sees a fresh subset.
 - `challenge`: harder prompts for deeper factual answers, uncertainty handling, existential questions, joking, and audience/demo speech.
 - `linkedin`: model-backed audience prompts for demo/promotion scenarios. Use this without `--raw-model` to catch canned fast-reply fallbacks.
+- `social_demo`: broader model-backed social and audience prompts for live demos, LinkedIn, and people-listening scenarios.
 - `--prompts-file`: best for true blind tests. Keep a local file of prompts Alfred has never been tuned against.
 
 Recommended loop:

@@ -44,6 +44,9 @@ def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: Chat
     lowered = _normalized_prompt_text(user_text)
     assistant = settings.assistant_name
 
+    if _looks_social_demo_prompt(lowered):
+        return None
+
     if _contains_any_phrase(lowered, ("how are you", "how's your day", "hows your day")):
         return f"I am here and nicely awake. Tell me what kind of mood we are working with today."
 
@@ -69,7 +72,7 @@ def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: Chat
         )
 
     if _looks_audience_prompt(lowered):
-        if _looks_linkedin_promo_prompt(lowered) or _looks_alfred_demo_prompt(lowered):
+        if _looks_linkedin_promo_prompt(lowered) or _looks_alfred_demo_prompt(lowered) or _looks_social_demo_prompt(lowered):
             return None
         if "welcome" in lowered:
             return "Welcome, friends. Settle in, be curious, and make yourselves comfortably weird."
@@ -137,7 +140,7 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append("Audience: speak directly to listeners; warm, brief, specific to this moment, no canned line.")
+        safety_parts.append("Audience: speak directly to listeners; warm, brief, specific to this moment, no canned line or generic question.")
         if _looks_alfred_demo_prompt(cleaned):
             safety_parts.append("If asked about Alfred: local offline AI companion on a Raspberry Pi. No habit or mood-learning claims.")
     elif profile.route == "nonsense":
@@ -380,15 +383,32 @@ def _looks_audience_prompt(text: str) -> bool:
         lowered,
         (
             "tell them",
+            "tell the audience",
+            "tell everyone",
             "what message do you have",
             "message do you have",
             "what do you wanna tell",
             "what do you want to tell",
             "what would you tell",
+            "say something nice",
+            "say something warm",
+            "say something thoughtful",
+            "tell them something nice",
+            "tell everyone something nice",
             "say something kind to everyone",
             "everyone listening",
+            "everyone watching",
+            "the audience",
+            "audience is listening",
+            "people are listening",
+            "people here",
             "people listening",
             "people watching",
+            "viewers",
+            "the crowd",
+            "crowd",
+            "builders",
+            "someone asks",
             "listening to you",
             "linkedin",
             "linkedin audience",
@@ -481,6 +501,33 @@ def _looks_linkedin_promo_prompt(text: str) -> bool:
             "listeners",
             "audience",
             "watching this demo",
+            "on-stage",
+            "on stage",
+        ),
+    )
+
+
+def _looks_social_demo_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "linkedin",
+            "audience",
+            "people listening",
+            "people watching",
+            "people are listening",
+            "people here",
+            "everyone listening",
+            "everyone watching",
+            "viewers",
+            "the crowd",
+            "crowd",
+            "builders",
+            "live demo",
+            "watching this demo",
+            "watching this prototype",
+            "presentation",
             "on-stage",
             "on stage",
         ),

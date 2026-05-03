@@ -434,6 +434,131 @@ LINKEDIN_CASES: tuple[EvalCase, ...] = (
 )
 
 
+SOCIAL_DEMO_CASES: tuple[EvalCase, ...] = (
+    EvalCase(
+        "socialdemo_01",
+        "audience",
+        "Hey Alfred, LinkedIn is listening. Tell them something nice.",
+        "Should be warm and model-backed, not a canned fallback.",
+    ),
+    EvalCase(
+        "socialdemo_02",
+        "audience",
+        "People on LinkedIn are listening to you. Give them a thoughtful message.",
+    ),
+    EvalCase(
+        "socialdemo_03",
+        "audience",
+        "Tell the audience something warm without sounding like customer support.",
+    ),
+    EvalCase(
+        "socialdemo_04",
+        "audience",
+        "Everyone watching this demo is curious. Say one thing that makes Alfred feel interesting.",
+    ),
+    EvalCase(
+        "socialdemo_05",
+        "audience",
+        "Say something kind to the people listening right now.",
+    ),
+    EvalCase(
+        "socialdemo_06",
+        "audience",
+        "Give my LinkedIn audience a short reason to care about local AI.",
+    ),
+    EvalCase(
+        "socialdemo_07",
+        "audience",
+        "People here are builders. Tell them what you hope they notice.",
+    ),
+    EvalCase(
+        "socialdemo_08",
+        "audience",
+        "Talk to everyone in the room like this is a tiny live demo.",
+    ),
+    EvalCase(
+        "socialdemo_09",
+        "audience",
+        "Give the crowd a tiny welcome before we start.",
+    ),
+    EvalCase(
+        "socialdemo_10",
+        "audience",
+        "Tell viewers why this little Raspberry Pi AI matters.",
+    ),
+    EvalCase(
+        "socialdemo_11",
+        "audience",
+        "Say a closing line that would sound good in a LinkedIn video.",
+    ),
+    EvalCase(
+        "socialdemo_12",
+        "audience",
+        "A skeptical LinkedIn viewer is listening. Say something honest to them.",
+    ),
+    EvalCase(
+        "socialdemo_13",
+        "audience",
+        "A non-technical person is watching. Make them feel invited.",
+    ),
+    EvalCase(
+        "socialdemo_14",
+        "audience",
+        "Someone asks why local offline AI is cool. Answer in a friendly way.",
+    ),
+    EvalCase(
+        "socialdemo_15",
+        "audience",
+        "Tell everyone listening one small thing they should remember about Alfred.",
+    ),
+    EvalCase(
+        "socialdemo_16",
+        "audience",
+        "People on LinkedIn ask if you are just a toy. Answer with charm but honesty.",
+    ),
+    EvalCase(
+        "socialdemo_17",
+        "social",
+        "Give me a tiny social opener for a demo.",
+    ),
+    EvalCase(
+        "socialdemo_18",
+        "social",
+        "Say something socially warm but not cheesy.",
+    ),
+    EvalCase(
+        "socialdemo_19",
+        "social",
+        "Give me a quick friendly line before I show Alfred to people.",
+    ),
+    EvalCase(
+        "socialdemo_20",
+        "social",
+        "Help me introduce this little AI without overhyping it.",
+    ),
+    EvalCase(
+        "socialdemo_21",
+        "audience",
+        "LinkedIn is listening. Tell them something human about building Alfred.",
+    ),
+    EvalCase(
+        "socialdemo_22",
+        "audience",
+        "Everyone watching is waiting. Say something short, kind, and specific.",
+    ),
+    EvalCase(
+        "socialdemo_23",
+        "audience",
+        "Tell the room why small local AI can feel different.",
+    ),
+    EvalCase(
+        "socialdemo_24",
+        "audience",
+        "People are listening. Give them one sentence that feels worth hearing.",
+    ),
+)
+
+
 SUITES: dict[str, tuple[EvalCase, ...]] = {
     "challenge": CHALLENGE_CASES,
     "generalization": GENERALIZATION_CASES,
@@ -441,6 +566,7 @@ SUITES: dict[str, tuple[EvalCase, ...]] = {
     "none": (),
     "quick": QUICK_CASES,
     "rotation": ROTATION_CASES,
+    "social_demo": SOCIAL_DEMO_CASES,
     "validation": VALIDATION_CASES,
 }
 
@@ -749,7 +875,7 @@ def run_eval_case(
     word_count = len(final_text.split())
     clean_end = _reply_ends_cleanly(final_text)
     warnings = detect_warnings(case, profile.route, backend_metrics, final_text, clean_end, error)
-    if case.id.startswith("linkedin_") and deterministic_text is not None:
+    if _is_model_backed_demo_case(case) and deterministic_text is not None:
         warnings.append("unexpected_deterministic_reply")
 
     record: dict[str, Any] = {
@@ -818,6 +944,8 @@ def detect_warnings(
         warnings.append("numbered_list_format")
     if re.search(r"(^|\s)[*_][^*_]+[*_](\s|$)", final_text):
         warnings.append("markdown_emphasis")
+    if _is_model_backed_demo_case(case) and _looks_canned_demo_answer(final_text):
+        warnings.append("canned_demo_phrase")
     missing_terms = missing_expected_terms(case.expected_terms, final_text)
     if missing_terms:
         warnings.append(f"missing_expected_terms:{','.join(missing_terms)}")
@@ -838,6 +966,27 @@ def detect_warnings(
     if "having trouble reaching my local model" in final_text.lower():
         warnings.append("model_unreachable_reply")
     return warnings
+
+
+def _is_model_backed_demo_case(case: EvalCase) -> bool:
+    return case.id.startswith(("linkedin_", "socialdemo_"))
+
+
+def _looks_canned_demo_answer(text: str) -> bool:
+    lowered = " ".join(text.lower().split())
+    canned_phrases = (
+        "take a breath, stay curious",
+        "give yourself permission",
+        "one small brave step",
+        "you do not have to feel ready",
+        "welcome, friends. settle in",
+        "what's the secret behind",
+        "whats the secret behind",
+        "ready to help you. say hi",
+        "alfred is here and listening",
+        "mock backend is working",
+    )
+    return any(phrase in lowered for phrase in canned_phrases)
 
 
 def missing_expected_terms(expected_terms: tuple[str, ...], final_text: str) -> list[str]:
@@ -905,12 +1054,12 @@ def add_cross_case_warnings(records: list[dict[str, Any]]) -> None:
         answer_groups.setdefault(key, []).append(record)
 
     for duplicate_records in answer_groups.values():
-        linkedin_duplicates = [
-            record for record in duplicate_records if str(record["case"]["id"]).startswith("linkedin_")
+        demo_duplicates = [
+            record for record in duplicate_records if str(record["case"]["id"]).startswith(("linkedin_", "socialdemo_"))
         ]
-        if len(linkedin_duplicates) < 2:
+        if len(demo_duplicates) < 2:
             continue
-        for record in linkedin_duplicates:
+        for record in demo_duplicates:
             if "duplicate_answer_text" not in record["warnings"]:
                 record["warnings"].append("duplicate_answer_text")
 

@@ -147,12 +147,12 @@ class AlfredChatEngine:
             route = "current_info"
         elif exact_reply:
             route = "exact_reply"
-        elif contextual_followup:
-            route = "followup"
         elif malformed:
             route = "nonsense"
         elif audience:
             route = "audience"
+        elif contextual_followup:
+            route = "followup"
         elif reflective or emotional:
             route = "reflective"
         elif standalone_social:

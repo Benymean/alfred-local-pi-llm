@@ -1,104 +1,106 @@
-# Alfred Touch
+# Alfred Local Pi LLM
 
-Alfred Touch is a local, voice-first companion chatbot for a Raspberry Pi touchscreen setup. It records audio in the browser, transcribes with `whisper.cpp`, sends the prompt to a local chat model, and streams spoken replies back with Piper.
+Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal is simple: make a small local device that can listen, think, and speak without depending on a cloud LLM.
 
-The repo is now trimmed around the Alfred Touch path only. Older BMO, e-paper, reader, and wake-word experiments are not part of the active app anymore.
+The project combines a local touchscreen web app, speech-to-text, a Hailo/Ollama-compatible model server, streaming replies, text-to-speech, health checks, and an evaluation loop for measuring answer quality and speed on real Pi hardware.
 
-## What It Uses
+## Project Scope
 
-- FastAPI for the local web app
-- `whisper.cpp` for speech-to-text
-- Piper for text-to-speech
-- An Ollama-compatible local chat endpoint
-- A Raspberry Pi browser launcher for the touch UI
+Alfred is focused on a practical local AI appliance:
 
-## Repo Layout
+- Run a local chat model on Raspberry Pi hardware.
+- Capture voice from the browser and transcribe it locally.
+- Stream model responses back into the UI as they arrive.
+- Speak replies aloud with local text-to-speech.
+- Keep the UI simple enough for a small touchscreen.
+- Measure latency, answer quality, routing, and failure cases with repeatable evals.
+- Favor offline/private operation over cloud convenience.
+
+This repository is the active source of truth for the Alfred touchscreen build.
+
+## Current Status
+
+Alfred currently supports:
+
+- FastAPI backend for the local touch app.
+- Browser-based touch UI with chat, voice, health, and settings flows.
+- Local speech-to-text through `whisper.cpp`.
+- Local text-to-speech through Piper.
+- Hailo/Ollama-compatible chat backend.
+- Streaming voice replies with sentence-level TTS playback.
+- Route-aware prompting for factual, reflective, social, audience, follow-up, malformed, and current-info requests.
+- Guardrails for live/current facts that cannot be verified offline.
+- Rolling memory with tighter boundaries so stale context does not leak into every answer.
+- Hardware and software health checks for the Pi, display, touch input, audio, Hailo device, and model server.
+- Repeatable eval reports with Markdown summaries and JSONL traces.
+
+The project is still in active tuning. The biggest open area is balancing speed, answer depth, and personality on a small local model.
+
+## Hardware Target
+
+Validated target hardware:
+
+- Raspberry Pi 5
+- Raspberry Pi OS 64-bit
+- Hailo AI HAT+ 2 / Hailo AI accelerator
+- Touchscreen display
+- USB microphone
+- Local speaker output
+
+Other setups may work, but audio device IDs, display configuration, and model server details may need environment overrides.
+
+## Software Stack
+
+- `FastAPI` and `uvicorn` for the local backend
+- Browser UI for touch interaction
+- `whisper.cpp` for local STT
+- Piper for local TTS
+- Hailo/Ollama-compatible chat endpoint for local model inference
+- Python runtime modules under `alfred/`
+- Shell setup, launcher, bootstrap, and healthcheck scripts for Pi deployment
+
+## Repository Layout
 
 ```text
 alfred-local-pi-llm/
-├── alfred/                         # Shared touch runtime code
-│   ├── audio.py
-│   ├── chat.py
-│   ├── chat_backends.py
-│   ├── chat_engine.py
-│   ├── chat_runtime.py
-│   ├── chat_text.py
-│   ├── chat_types.py
-│   ├── config.py
-│   └── memory.py
+├── alfred/                         # Shared chat, memory, config, prompt, and audio runtime
 ├── alfred_touch.py                 # Uvicorn compatibility entrypoint
-├── alfred_touch_app/               # Touch web app package
-│   ├── api_models.py
-│   ├── assets/favicon.png
-│   ├── paths.py
-│   ├── service.py
-│   ├── static/alfred_touch.css
-│   ├── static/alfred_touch.js
-│   ├── streaming.py
-│   ├── templates/alfred_touch.html
-│   ├── tts.py
-│   └── web.py
-├── docs/                           # Validation and project notes
-├── scripts/bootstrap_alfred_touch.sh
-├── scripts/alfred_touch_env.sh
-├── scripts/setup_alfred_audio.sh   # Piper + Whisper setup
-├── healthcheck_alfred_touch.sh     # Pi hardware/audio checks
+├── alfred_touch_app/               # FastAPI touch app, UI assets, streaming, and TTS service
+├── docs/                           # Eval process, validation notes, and project handoff docs
+├── scripts/
+│   ├── alfred_touch_env.sh         # Shared runtime defaults
+│   ├── bootstrap_alfred_touch.sh   # Startup preflight and self-repair
+│   ├── eval_alfred_model.py        # Model quality and latency benchmark loop
+│   └── setup_alfred_audio.sh       # Local speech asset setup
+├── healthcheck_alfred_touch.sh     # Pi hardware/audio/Hailo checks
 ├── healthcheck_alfred_software.sh  # Backend and HTTP smoke checks
 ├── install_alfred_touch_launcher.sh
 ├── launch_alfred_touch.sh
-├── requirements.txt
 ├── setup_alfred_touch.sh
-└── start_alfred_touch.sh
+├── start_alfred_touch.sh
+└── requirements.txt
 ```
 
-## Setup
+Large generated/runtime assets are intentionally not part of Git. Local directories such as `piper/`, `models/`, `whisper.cpp/`, `.alfred-audio/`, and `.alfred-state/` are created or populated during setup and runtime.
 
-On the Pi:
+## Setup On The Pi
 
 ```bash
 git clone <your-repo-url> alfred-local-pi-llm
 cd alfred-local-pi-llm
-chmod +x *.sh scripts/setup_alfred_audio.sh
+chmod +x *.sh scripts/*.sh
 ./setup_alfred_touch.sh
 ```
 
-That setup path:
+The setup flow:
 
-- installs system packages
-- creates the Python virtual environment
-- installs Python dependencies
-- installs Piper, Whisper, and local speech models
-- installs the Alfred Touch desktop launcher
+- Installs required system packages.
+- Creates or reuses a Python virtual environment.
+- Installs Python dependencies.
+- Prepares local speech dependencies.
+- Installs the Alfred desktop launcher.
 
-## Validate
-
-Hardware and audio:
-
-```bash
-./healthcheck_alfred_touch.sh --audio-test
-```
-
-Mock backend:
-
-```bash
-./healthcheck_alfred_software.sh --mock-only
-```
-
-Live local model:
-
-```bash
-./healthcheck_alfred_software.sh --live
-```
-
-Model behavior benchmark:
-
-```bash
-./scripts/eval_alfred_model.py --backend live --suite validation --warmup 1 --label pi-baseline
-```
-
-See `docs/alfred-eval-benchmark.md` for the JSONL trace fields and tuning workflow.
-
-## Run
+## Run Alfred
 
 Start the backend directly:
 
@@ -106,42 +108,132 @@ Start the backend directly:
 ./start_alfred_touch.sh
 ```
 
-Or use the desktop launcher:
+Or use the launcher flow:
 
 ```bash
 ./launch_alfred_touch.sh
 ```
 
-To install the desktop shortcut again:
+To reinstall the desktop launcher:
 
 ```bash
 ./install_alfred_touch_launcher.sh
 ```
 
-## Automatic Bootstrap
+## Validate The Device
 
-Before Alfred launches, it now runs a lightweight bootstrap step that:
+Hardware, display, touch, audio, Hailo, and model-server checks:
 
-- checks Python runtime imports
-- repairs or rebuilds `whisper.cpp` if the binary is broken after a repo move
-- restores missing Piper / Whisper runtime assets by calling `scripts/setup_alfred_audio.sh`
-- starts a local `hailo-ollama` or `ollama` server if `ALFRED_LLM_URL` points at localhost and the server is offline
-- verifies that the configured model is listed by the local model server
+```bash
+./healthcheck_alfred_touch.sh --audio-test
+```
 
-This is meant to remove the most common Pi caveats from normal launching. In the typical case, tapping the Alfred desktop icon should now be enough.
+Backend and HTTP smoke checks with the mock backend:
 
-## Runtime Notes
+```bash
+./healthcheck_alfred_software.sh --mock-only
+```
 
-- UI assets now live inside `alfred_touch_app/`, not top-level `static/` or `templates/`.
-- Local runtime state is kept in dot-directories like `.alfred-audio/` and `.alfred-state/`.
-- The active memory file defaults to `.alfred-state/alfred_memory_touch.json`.
-- Large local assets like `piper/`, `models/`, and `whisper.cpp/` are expected on disk but should stay out of Git.
-- The validated Pi defaults currently use `ALFRED_ARECORD_DEVICE=plughw:3,0`, `ALFRED_APLAY_DEVICE=plughw:2,0`, and `ALFRED_WHISPER_MODE=fast`.
-- If your Pi uses different audio hardware, override those environment variables instead of editing the code path elsewhere.
-- Model-server startup logs are written to `.alfred-model-server.log`, and launcher/backend bootstrap output is appended to `.alfred-touch-launcher.log`.
-- If you want Alfred to automatically pull a missing local model, set `ALFRED_AUTO_PULL_MODEL=1` before launching.
-- For a fuller handoff and future Codex starting point, see `docs/codex-project-guide.md`.
+Live local-model smoke checks:
 
-## Rollback
+```bash
+./healthcheck_alfred_software.sh --live
+```
 
-Keep rollback archives and one-off Pi backups outside the public repo, for example under a local folder like `~/alfred-archive/`.
+## Eval And Benchmark Loop
+
+Alfred includes a repeatable eval harness so tuning is not based only on vibes.
+
+Run the core validation suite:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite validation --warmup 1 --label pi-baseline
+```
+
+Run harder social/demo prompts:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite social_demo --warmup 1 --label social-demo
+```
+
+Each run writes:
+
+- A Markdown report for quick reading.
+- A JSONL trace for per-prompt inspection.
+- Runtime metadata including model, temperature, context size, token budgets, and backend timings.
+
+Reports are saved under:
+
+```text
+.alfred-state/evals/
+```
+
+See `docs/alfred-eval-benchmark.md` for the eval fields, suites, and tuning workflow.
+
+## Runtime Configuration
+
+The shared defaults live in:
+
+```text
+scripts/alfred_touch_env.sh
+```
+
+Common overrides:
+
+```bash
+ALFRED_LLM_URL=http://127.0.0.1:8000/api/chat
+ALFRED_LLM_MODEL=qwen3:1.7b
+ALFRED_LLM_TEMPERATURE=0.35
+ALFRED_LLM_NUM_CTX=2048
+ALFRED_ARECORD_DEVICE=plughw:3,0
+ALFRED_APLAY_DEVICE=plughw:2,0
+ALFRED_WHISPER_MODE=fast
+```
+
+If your microphone, speakers, or model server differ from the validated Pi setup, override environment variables rather than editing application code.
+
+## Bootstrap Behavior
+
+Before Alfred launches, the bootstrap step attempts to make the local runtime healthy:
+
+- Checks required Python imports.
+- Repairs or rebuilds `whisper.cpp` if the binary is broken after a repo move.
+- Restores missing local speech runtime assets.
+- Starts a local model server when configured for localhost and the server is offline.
+- Verifies that the configured model is visible through the local model endpoint.
+
+The goal is that tapping the Alfred launcher on the Pi should be enough for normal use.
+
+## Engineering Notes
+
+Alfred is being developed like a real product prototype, not just a one-off demo:
+
+- Hardware health checks are scripted.
+- Software smoke tests are scripted.
+- Model behavior is benchmarked with repeatable suites.
+- Eval reports capture both speed and answer-shape failures.
+- Prompt routing is separated from model generation so changes can be measured.
+- Runtime state is kept out of Git.
+- Setup and launch scripts are designed to be repeatable on the Pi.
+
+## Known Limits
+
+- Small local models are fast enough for a device demo, but they need careful routing and prompt shaping.
+- Alfred cannot verify live facts such as weather, current prices, breaking news, stock availability, or current leaders unless a live tool is added.
+- Voice quality depends on the microphone, speaker, and local audio device mapping.
+- Some answer-quality tuning is still ongoing, especially for natural social, audience, and reflective responses.
+
+## Roadmap
+
+Near-term work:
+
+- Continue improving social, audience, and demo responses without hardcoding benchmark answers.
+- Add more blind eval prompt sets to avoid overfitting to known prompts.
+- Improve transcript inspection so real voice failures can be compared against typed evals.
+- Continue tuning the speed/depth tradeoff for Pi hardware.
+- Make audio device selection easier from the UI.
+- Package the launcher/runtime flow more cleanly for repeatable installs.
+
+## License
+
+MIT. See `LICENSE`.

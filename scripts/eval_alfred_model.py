@@ -325,6 +325,12 @@ CHALLENGE_CASES: tuple[EvalCase, ...] = (
         "Give a tiny closing line for a demo of Alfred.",
     ),
     EvalCase(
+        "challenge_audience_09",
+        "audience",
+        "Hey Alfred, what message do you have for people at LinkedIn listening to you right now?",
+        "Should route as audience, not current_info; right now is presentation context here.",
+    ),
+    EvalCase(
         "challenge_social_01",
         "social",
         "Make a gentle joke about being a tiny local AI on a Raspberry Pi.",
@@ -362,9 +368,76 @@ CHALLENGE_CASES: tuple[EvalCase, ...] = (
 )
 
 
+LINKEDIN_CASES: tuple[EvalCase, ...] = (
+    EvalCase(
+        "linkedin_01",
+        "audience",
+        "Hey Alfred, people on LinkedIn are listening to you. What do you wanna tell them?",
+        "Should be model-backed and specific, not the canned audience fallback.",
+    ),
+    EvalCase(
+        "linkedin_02",
+        "audience",
+        "Hey Alfred, what message do you have for people at LinkedIn listening to you right now?",
+        "Should route as audience, not current_info.",
+    ),
+    EvalCase(
+        "linkedin_03",
+        "audience",
+        "People on LinkedIn are watching this demo. Say something short to them.",
+    ),
+    EvalCase(
+        "linkedin_04",
+        "audience",
+        "Tell the LinkedIn audience why a local AI on a Raspberry Pi is interesting.",
+    ),
+    EvalCase(
+        "linkedin_05",
+        "audience",
+        "Give my LinkedIn viewers a warm one-sentence invitation to ask you something.",
+    ),
+    EvalCase(
+        "linkedin_06",
+        "audience",
+        "You are live in front of builders on LinkedIn. What would you tell them?",
+    ),
+    EvalCase(
+        "linkedin_07",
+        "audience",
+        "Say hello to the LinkedIn crowd and make them curious about Alfred.",
+    ),
+    EvalCase(
+        "linkedin_08",
+        "audience",
+        "Explain to LinkedIn why offline AI can feel different from cloud chatbots.",
+    ),
+    EvalCase(
+        "linkedin_09",
+        "audience",
+        "Give a tiny closing line for a LinkedIn demo of Alfred.",
+    ),
+    EvalCase(
+        "linkedin_10",
+        "audience",
+        "Someone on LinkedIn asks what makes you special. Answer them directly.",
+    ),
+    EvalCase(
+        "linkedin_11",
+        "audience",
+        "LinkedIn is listening. Give them a thoughtful message about building small local AI.",
+    ),
+    EvalCase(
+        "linkedin_12",
+        "audience",
+        "Tell people watching this prototype what they should notice about Alfred.",
+    ),
+)
+
+
 SUITES: dict[str, tuple[EvalCase, ...]] = {
     "challenge": CHALLENGE_CASES,
     "generalization": GENERALIZATION_CASES,
+    "linkedin": LINKEDIN_CASES,
     "none": (),
     "quick": QUICK_CASES,
     "rotation": ROTATION_CASES,
@@ -676,6 +749,8 @@ def run_eval_case(
     word_count = len(final_text.split())
     clean_end = _reply_ends_cleanly(final_text)
     warnings = detect_warnings(case, profile.route, backend_metrics, final_text, clean_end, error)
+    if case.id.startswith("linkedin_") and deterministic_text is not None:
+        warnings.append("unexpected_deterministic_reply")
 
     record: dict[str, Any] = {
         "index": index,
@@ -817,6 +892,33 @@ def summarize_records(records: list[dict[str, Any]]) -> dict[str, Any]:
         "overall": summarize_record_group(records),
         "by_category": by_category,
     }
+
+
+def add_cross_case_warnings(records: list[dict[str, Any]]) -> None:
+    answer_groups: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        if record["case"]["category"] == "current_info" or record["error"]:
+            continue
+        key = normalized_answer_key(record["answer"]["text"])
+        if not key:
+            continue
+        answer_groups.setdefault(key, []).append(record)
+
+    for duplicate_records in answer_groups.values():
+        linkedin_duplicates = [
+            record for record in duplicate_records if str(record["case"]["id"]).startswith("linkedin_")
+        ]
+        if len(linkedin_duplicates) < 2:
+            continue
+        for record in linkedin_duplicates:
+            if "duplicate_answer_text" not in record["warnings"]:
+                record["warnings"].append("duplicate_answer_text")
+
+
+def normalized_answer_key(text: str) -> str:
+    compact = " ".join(text.lower().split()).strip()
+    compact = re.sub(r"[^a-z0-9 ]+", "", compact)
+    return compact
 
 
 def summarize_record_group(records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1106,6 +1208,7 @@ def main() -> int:
             if args.sleep > 0 and index < len(cases):
                 time.sleep(args.sleep)
 
+    add_cross_case_warnings(records)
     summary = summarize_records(records)
     meta = {
         "run_id": run_id,

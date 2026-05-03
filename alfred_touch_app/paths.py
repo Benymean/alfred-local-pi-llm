@@ -15,4 +15,5 @@ EARLY_ACK_PHRASES = (
     "Hang on a sec.",
     "Let me think.",
     "One moment.",
+    "Im thinking"
 )

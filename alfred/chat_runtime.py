@@ -69,6 +69,8 @@ def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: Chat
         )
 
     if _looks_audience_prompt(lowered):
+        if _looks_linkedin_promo_prompt(lowered) or _looks_alfred_demo_prompt(lowered):
+            return None
         if "welcome" in lowered:
             return "Welcome, friends. Settle in, be curious, and make yourselves comfortably weird."
         if "kind" in lowered:
@@ -135,7 +137,7 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append("Audience: speak directly to listeners; warm, brief, no fake backstory.")
+        safety_parts.append("Audience: speak directly to listeners; warm, brief, specific to this moment, no canned line.")
         if _looks_alfred_demo_prompt(cleaned):
             safety_parts.append("If asked about Alfred: local offline AI companion on a Raspberry Pi. No habit or mood-learning claims.")
     elif profile.route == "nonsense":
@@ -365,7 +367,11 @@ def _looks_emotional_prompt(text: str) -> bool:
 
 def _looks_open_ended_companion_prompt(text: str) -> bool:
     lowered = _normalized_prompt_text(text)
-    return _looks_interesting_prompt(lowered) or _looks_next_prompt(lowered)
+    return (
+        _looks_interesting_prompt(lowered)
+        or _looks_next_prompt(lowered)
+        or _contains_any_phrase(lowered, ("tiny thing worth noticing",))
+    )
 
 
 def _looks_audience_prompt(text: str) -> bool:
@@ -374,9 +380,20 @@ def _looks_audience_prompt(text: str) -> bool:
         lowered,
         (
             "tell them",
+            "what message do you have",
+            "message do you have",
+            "what do you wanna tell",
+            "what do you want to tell",
+            "what would you tell",
             "say something kind to everyone",
             "everyone listening",
+            "people listening",
+            "people watching",
+            "listening to you",
+            "linkedin",
             "linkedin audience",
+            "people at linkedin",
+            "people on linkedin",
             "my audience",
             "my friends",
             "talk to my friends",
@@ -384,6 +401,7 @@ def _looks_audience_prompt(text: str) -> bool:
             "message for everyone",
             "message for my friends",
             "watching this demo",
+            "watching this prototype",
             "addressed to the room",
             "address my audience",
             "on-stage intro",
@@ -449,6 +467,22 @@ def _looks_alfred_demo_prompt(text: str) -> bool:
             "local ai",
             "raspberry pi",
             "non-technical person",
+        ),
+    )
+
+
+def _looks_linkedin_promo_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "linkedin",
+            "people listening",
+            "listeners",
+            "audience",
+            "watching this demo",
+            "on-stage",
+            "on stage",
         ),
     )
 
@@ -594,7 +628,7 @@ def _contains_phrase(text: str, phrase: str) -> bool:
 
 
 def _needs_current_info(user_text: str) -> bool:
-    text = user_text.lower().strip()
+    text = _normalized_prompt_text(user_text)
 
     if re.search(r"\b(1[0-9]{3}|20[0-2][0-9]|2030)\b", text):
         return False
@@ -611,6 +645,32 @@ def _needs_current_info(user_text: str) -> bool:
     if any(word in text for word in historical_words):
         return False
 
+    live_topics = (
+        "president of",
+        "prime minister of",
+        "leader of",
+        "ceo of",
+        "price of",
+        "stock",
+        "stock availability",
+        "weather",
+        "news",
+        "headline",
+        "schedule",
+        "standings",
+        "release date",
+        "latest version",
+        "software version",
+        "version of",
+        "movies playing",
+        "movies are playing",
+        "came out this week",
+    )
+    has_live_topic = _contains_any_phrase(text, live_topics)
+
+    if _looks_audience_prompt(text) and not has_live_topic:
+        return False
+
     live_words = (
         "current",
         "currently",
@@ -624,22 +684,10 @@ def _needs_current_info(user_text: str) -> bool:
         "this year",
         "now",
     )
-    if _contains_any_phrase(text, live_words):
+    if has_live_topic and _contains_any_phrase(text, live_words):
         return True
 
-    live_topics = (
-        "president of",
-        "prime minister of",
-        "leader of",
-        "ceo of",
-        "price of",
-        "stock",
-        "weather",
-        "news",
-        "schedule",
-        "release date",
-    )
-    return _contains_any_phrase(text, live_topics) and text.startswith(("who is", "who's", "what is", "what's", "tell me"))
+    return has_live_topic and text.startswith(("who is", "who's", "what is", "what's", "tell me"))
 
 
 def _current_info_reply() -> str:

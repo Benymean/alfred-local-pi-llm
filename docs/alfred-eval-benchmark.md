@@ -82,6 +82,12 @@ Fresh challenge sample for anti-overfitting checks:
 ./scripts/eval_alfred_model.py --backend live --suite challenge --raw-model --sample 20 --random-seed --warmup 1 --label raw-challenge-sample
 ```
 
+LinkedIn/demo audience test without hardcoded fast replies:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite linkedin --warmup 1 --label linkedin-demo
+```
+
 Mock backend test without the model server:
 
 ```bash
@@ -117,6 +123,8 @@ Start with the Markdown report:
 - `done=length` means the reply hit `num_predict` and may have been cut off.
 - `answer_does_not_end_cleanly` usually means the token budget or prompt ending instruction needs work.
 - `missing_expected_terms:...` means a harder factual prompt missed one or more anchor concepts.
+- `unexpected_deterministic_reply` means a prompt that should reach the model was answered by a fast reply.
+- `duplicate_answer_text` means multiple LinkedIn/demo prompts produced the same answer text.
 - `unexpected_current_info_route` means Alfred refused a stable question as if it needed live lookup.
 - Large prompt word counts usually point to memory or prompt-size overhead.
 
@@ -132,6 +140,7 @@ Use the suites differently:
 - `generalization`: fixed held-out set. Good for checking whether changes transfer to prompts that were not in the original validation list.
 - `rotation`: larger prompt bank. Use `--sample` and `--random-seed` so each tuning pass sees a fresh subset.
 - `challenge`: harder prompts for deeper factual answers, uncertainty handling, existential questions, joking, and audience/demo speech.
+- `linkedin`: model-backed audience prompts for demo/promotion scenarios. Use this without `--raw-model` to catch canned fast-reply fallbacks.
 - `--prompts-file`: best for true blind tests. Keep a local file of prompts Alfred has never been tuned against.
 
 Recommended loop:

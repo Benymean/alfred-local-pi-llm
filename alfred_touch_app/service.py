@@ -24,6 +24,7 @@ from alfred.chat import (
     _reply_ends_cleanly,
     _trim_truncated_reply,
 )
+from alfred.chat_text import _clean_stream_sentence_for_speech
 from alfred.config import AlfredSettings
 from alfred.memory import AlfredMemory
 
@@ -297,6 +298,9 @@ class AlfredTouchService:
                                     yield ndjson_event({"type": "partial", "turn_id": turn_id, "text": partial_text})
 
                                 for sentence in chunker.push(chunk):
+                                    sentence = _clean_stream_sentence_for_speech(sentence, self.settings.assistant_name)
+                                    if not sentence:
+                                        continue
                                     sentence_count += 1
                                     if first_sentence_seconds is None:
                                         first_sentence_seconds = time.perf_counter() - llm_started_at
@@ -337,6 +341,8 @@ class AlfredTouchService:
                         leftover = ""
                     else:
                         leftover = trimmed_leftover
+                if leftover:
+                    leftover = _clean_stream_sentence_for_speech(leftover, self.settings.assistant_name)
                 if leftover:
                     sentence_count += 1
                     if first_sentence_seconds is None:

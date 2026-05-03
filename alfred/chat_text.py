@@ -165,6 +165,12 @@ def _strip_leading_speaker_label(text: str, assistant_name: str) -> str:
     return cleaned
 
 
+def _clean_stream_sentence_for_speech(text: str, assistant_name: str) -> str:
+    cleaned = _clean_reply(text)
+    cleaned = _strip_leading_speaker_label(cleaned, assistant_name)
+    return " ".join(cleaned.split()).strip()
+
+
 def _should_show_reply_text(text: str, threshold: int) -> tuple[bool, str]:
     compact = " ".join(text.split())
     sentences = len(re.findall(r"[.!?]+", compact))

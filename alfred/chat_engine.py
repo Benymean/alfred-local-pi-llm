@@ -155,6 +155,8 @@ class AlfredChatEngine:
             route = "audience"
         elif reflective or emotional:
             route = "reflective"
+        elif standalone_social:
+            route = "casual"
         elif factual:
             route = "factual"
         else:

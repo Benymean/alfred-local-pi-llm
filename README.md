@@ -116,6 +116,7 @@ To install the desktop shortcut again:
 - Large local assets like `piper/`, `models/`, and `whisper.cpp/` are expected on disk but should stay out of Git.
 - The validated Pi defaults currently use `ALFRED_ARECORD_DEVICE=plughw:3,0`, `ALFRED_APLAY_DEVICE=plughw:2,0`, and `ALFRED_WHISPER_MODE=fast`.
 - If your Pi uses different audio hardware, override those environment variables instead of editing the code path elsewhere.
+- For a fuller handoff and future Codex starting point, see `docs/codex-project-guide.md`.
 
 ## Rollback
 

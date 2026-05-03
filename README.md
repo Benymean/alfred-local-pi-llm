@@ -142,18 +142,12 @@ Live local-model smoke checks:
 
 ## Eval And Benchmark Loop
 
-Alfred includes a repeatable eval harness so tuning is not based only on vibes.
+Alfred includes a repeatable eval harness so tuning is not based on vibes.
 
 Run the core validation suite:
 
 ```bash
 ./scripts/eval_alfred_model.py --backend live --suite validation --warmup 1 --label pi-baseline
-```
-
-Run harder social/demo prompts:
-
-```bash
-./scripts/eval_alfred_model.py --backend live --suite social_demo --warmup 1 --label social-demo
 ```
 
 Each run writes:

@@ -200,7 +200,7 @@ The goal is that tapping the Alfred launcher on the Pi should be enough for norm
 
 ## Engineering Notes
 
-Alfred is being developed like a real product prototype, not just a one-off demo:
+Alfred is being developed like a real product prototype:
 
 - Hardware health checks are scripted.
 - Software smoke tests are scripted.
@@ -212,22 +212,22 @@ Alfred is being developed like a real product prototype, not just a one-off demo
 
 ## Known Limits
 
-- Small local models are fast enough for a device demo, but they need careful routing and prompt shaping.
+- Small local models are fast enough for a demo, but they need careful routing and prompt shaping.
+- The current model is Qwen3 1.7B, a tiny instruction-tuned model better suited to simple kiosk-style interactions than a full companion AI. This project pushes it to the limits.
 - Alfred cannot verify live facts such as weather, current prices, breaking news, stock availability, or current leaders unless a live tool is added.
 - Voice quality depends on the microphone, speaker, and local audio device mapping.
-- Some answer-quality tuning is still ongoing, especially for natural social, audience, and reflective responses.
+- Some answer-quality tuning is still ongoing, especially for social responses.
 
 ## Roadmap
 
 Near-term work:
 
-- Continue improving social, audience, and demo responses without hardcoding benchmark answers.
+- Continue improving responses without hardcoding benchmark answers.
 - Add more blind eval prompt sets to avoid overfitting to known prompts.
 - Improve transcript inspection so real voice failures can be compared against typed evals.
-- Continue tuning the speed/depth tradeoff for Pi hardware.
 - Make audio device selection easier from the UI.
 - Package the launcher/runtime flow more cleanly for repeatable installs.
+Test stronger models once the Hailo Model Zoo expands its support for Hailo-optimized LLMs.
 
 ## License
-
 MIT. See `LICENSE`.

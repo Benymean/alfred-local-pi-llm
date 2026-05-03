@@ -90,6 +90,14 @@ Live local model:
 ./healthcheck_alfred_software.sh --live
 ```
 
+Model behavior benchmark:
+
+```bash
+./scripts/eval_alfred_model.py --backend live --suite validation --warmup 1 --label pi-baseline
+```
+
+See `docs/alfred-eval-benchmark.md` for the JSONL trace fields and tuning workflow.
+
 ## Run
 
 Start the backend directly:

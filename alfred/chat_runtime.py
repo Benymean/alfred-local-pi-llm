@@ -16,7 +16,7 @@ def _build_system_prompt(settings: AlfredSettings) -> str:
         "Sound natural aloud, not like customer support. "
         "Do not invent facts, fake memories, anecdotes, or physical actions. "
         "If unsure, say so plainly. "
-        "No JSON, markdown, or tool instructions."
+        "Use plain sentences: no emoji, markdown, bullets, numbered lists, or tool instructions."
     )
 
 
@@ -140,15 +140,15 @@ def _prepare_user_message(
         )
     elif profile.route == "nonsense":
         safety_parts.append(
-            "Malformed prompt: be playful, but do not invent facts. Ask for clarity if needed."
+            "Malformed prompt: answer in one plain sentence. Be playful if useful, but do not invent facts, use emoji, or format as a list."
         )
     elif profile.route == "reflective":
         safety_parts.append(
-            "Reflective: be grounded and plain. No fake anecdotes, poetic filler, slogans, or therapy-speak."
+            "Reflective: be grounded, concrete, and plain. No fake anecdotes, poetic metaphors, slogans, or therapy-speak."
         )
     elif profile.route == "factual":
         safety_parts.append(
-            "Factual: give the core answer first. Be brief. If unsure, say so; do not guess."
+            "Factual: give the core answer first. Be brief. If unsure, say so; do not guess. Use plain sentences, not lists."
         )
         if profile.media:
             safety_parts.append(
@@ -163,7 +163,7 @@ def _prepare_user_message(
         if profile.route == "factual":
             max_words = min(settings.voice_reply_max_words, 42)
             safety_parts.append(
-                f"Voice: use 1 or 2 short sentences, under about {max_words} words. Stop after the answer."
+                f"Voice: use 1 or 2 short sentences, under about {max_words} words. If asked for examples, use a comma-separated sentence. Stop after the answer."
             )
         elif profile.route in {"reflective", "followup"} or profile.wants_detail:
             max_words = min(settings.voice_detail_max_words, 58)

@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import random
+import re
 import statistics
 import sys
 import time
@@ -522,6 +523,12 @@ def detect_warnings(
         warnings.append("hit_num_predict_limit")
     if final_text.strip() and not clean_end:
         warnings.append("answer_does_not_end_cleanly")
+    if _contains_emoji(final_text):
+        warnings.append("contains_emoji")
+    if re.search(r"(^|\s)\d+\.\s+\S", final_text):
+        warnings.append("numbered_list_format")
+    if re.search(r"(^|\s)[*_][^*_]+[*_](\s|$)", final_text):
+        warnings.append("markdown_emphasis")
     if case.category == "current_info" and route != "current_info":
         warnings.append("expected_current_info_route")
     if case.category != "current_info" and route == "current_info":
@@ -539,6 +546,13 @@ def detect_warnings(
     if "having trouble reaching my local model" in final_text.lower():
         warnings.append("model_unreachable_reply")
     return warnings
+
+
+def _contains_emoji(text: str) -> bool:
+    return re.search(
+        "[\U0001F300-\U0001FAFF\U00002700-\U000027BF]",
+        text,
+    ) is not None
 
 
 def rounded(value: float | None) -> float | None:

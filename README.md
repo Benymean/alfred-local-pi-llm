@@ -15,7 +15,7 @@ The repo is now trimmed around the Alfred Touch path only. Older BMO, e-paper, r
 ## Repo Layout
 
 ```text
-be-more-hailo/
+alfred-local-pi-llm/
 ├── alfred/                         # Shared touch runtime code
 │   ├── audio.py
 │   ├── chat.py
@@ -38,8 +38,7 @@ be-more-hailo/
 │   ├── templates/alfred_touch.html
 │   ├── tts.py
 │   └── web.py
-├── docs/                           # Handoffs and validation notes
-├── snapshots/                      # Rollback checkpoints
+├── docs/                           # Validation and project notes
 ├── scripts/setup_alfred_audio.sh   # Piper + Whisper setup
 ├── healthcheck_alfred_touch.sh     # Pi hardware/audio checks
 ├── healthcheck_alfred_software.sh  # Backend and HTTP smoke checks
@@ -55,8 +54,8 @@ be-more-hailo/
 On the Pi:
 
 ```bash
-git clone <your-repo-url> be-more-hailo
-cd be-more-hailo
+git clone <your-repo-url> alfred-local-pi-llm
+cd alfred-local-pi-llm
 chmod +x *.sh scripts/setup_alfred_audio.sh
 ./setup_alfred_touch.sh
 ```
@@ -114,12 +113,10 @@ To install the desktop shortcut again:
 - UI assets now live inside `alfred_touch_app/`, not top-level `static/` or `templates/`.
 - Local runtime state is kept in dot-directories like `.alfred-audio/` and `.alfred-state/`.
 - The active memory file defaults to `.alfred-state/alfred_memory_touch.json`.
-- Large local assets like `piper/`, `models/`, and `whisper.cpp/build/` are expected on disk but should stay out of Git.
+- Large local assets like `piper/`, `models/`, and `whisper.cpp/` are expected on disk but should stay out of Git.
+- The validated Pi defaults currently use `ALFRED_ARECORD_DEVICE=plughw:3,0`, `ALFRED_APLAY_DEVICE=plughw:2,0`, and `ALFRED_WHISPER_MODE=fast`.
+- If your Pi uses different audio hardware, override those environment variables instead of editing the code path elsewhere.
 
 ## Rollback
 
-Project handoffs stay in `docs/`, and rollback archives stay in `snapshots/`. Before this cleanup pass, a pre-publish archive was created at:
-
-- `snapshots/alfred-touch-prepublish-cleanup-2026-05-03.tgz`
-
-If you need to revert, that archive and the earlier checkpoints are still available.
+Keep rollback archives and one-off Pi backups outside the public repo, for example under a local folder like `~/alfred-archive/`.

@@ -7,6 +7,7 @@ def _clean_reply(text: str) -> str:
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
     text = _strip_voice_hostile_formatting(text)
+    text = _replace_unsupported_personalization_claims(text)
     text = text.replace("\r", " ").strip()
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
@@ -18,6 +19,29 @@ def _strip_voice_hostile_formatting(text: str) -> str:
     text = re.sub(r"\s+([.!?,;:])", r"\1", text)
     text = re.sub(r"\s{2,}", " ", text)
     return text
+
+
+def _replace_unsupported_personalization_claims(text: str) -> str:
+    if not re.search(r"\b(learns?|remembers?|habits?|preferences?|moods?|voice|actions)\b", text, flags=re.IGNORECASE):
+        return text
+
+    safe_sentence = "It feels personal because it runs locally and keeps the interaction close to the device."
+    cleaned_sentences: list[str] = []
+    for match in re.finditer(r"[^.!?]+[.!?]?", text):
+        sentence = match.group(0).strip()
+        if not sentence:
+            continue
+        unsafe = re.search(
+            r"\b(learns?|remembers?)\b.*\b(habits?|preferences?|moods?|voice|actions)\b",
+            sentence,
+            flags=re.IGNORECASE,
+        )
+        if unsafe:
+            if not cleaned_sentences or cleaned_sentences[-1] != safe_sentence:
+                cleaned_sentences.append(safe_sentence)
+            continue
+        cleaned_sentences.append(sentence)
+    return " ".join(cleaned_sentences) if cleaned_sentences else text
 
 
 def _trim_truncated_reply(text: str) -> str:

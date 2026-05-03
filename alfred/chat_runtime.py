@@ -28,10 +28,10 @@ def _num_predict_for_profile(settings: AlfredSettings, profile: ChatRequestProfi
     if profile.route in {"casual", "exact_reply", "audience", "nonsense"}:
         return settings.voice_llm_num_predict
     if profile.route == "factual":
-        return settings.voice_llm_num_predict
+        return min(settings.voice_llm_num_predict, 72)
     if profile.route == "followup":
         return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 8)
-    return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 16)
+    return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 8)
 
 
 def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: ChatRequestProfile) -> str | None:
@@ -135,21 +135,23 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append(
-            "Audience: address listeners directly. For Alfred, project, demo, or offline-AI prompts, say Alfred is a local offline AI companion on a Raspberry Pi. Do not claim private learning."
-        )
+        safety_parts.append("Audience: speak directly to listeners; warm, brief, no fake backstory.")
+        if _looks_alfred_demo_prompt(cleaned):
+            safety_parts.append("If asked about Alfred: local offline AI companion on a Raspberry Pi. No habit or mood-learning claims.")
     elif profile.route == "nonsense":
         safety_parts.append(
             "Malformed prompt: answer in one plain sentence. Be playful if useful, but do not invent facts, use emoji, or format as a list."
         )
     elif profile.route == "reflective":
         safety_parts.append(
-            "Reflective: grounded, concrete, plain. No fake anecdotes, poetic metaphors, slogans, therapy-speak, or repeated filler."
+            "Reflective: plain, grounded, useful. No poetic imagery, fake anecdotes, slogans, therapy-speak, or repeated filler."
         )
     elif profile.route == "factual":
-        safety_parts.append(
-            "Factual: core answer first; brief. If unsure, say so. Broad history or science: give several established examples, not one modern guess. No lists."
-        )
+        safety_parts.append("Factual: answer first; brief; do not guess. No lists.")
+        if _looks_broad_factual_prompt(cleaned):
+            safety_parts.append("Broad history/science: use several established examples, not one modern guess.")
+        if _looks_uncertainty_trap(cleaned):
+            safety_parts.append("For exact, every, or single-most questions: state limits and avoid false precision.")
         if profile.media:
             safety_parts.append(
                 "For media questions, say if you are uncertain."
@@ -161,19 +163,19 @@ def _prepare_user_message(
 
     if response_mode == "voice":
         if profile.route == "factual":
-            max_words = min(settings.voice_reply_max_words, 36)
+            max_words = min(settings.voice_reply_max_words, 32)
             safety_parts.append(
-                f"Voice: 1 or 2 short sentences under about {max_words} words. Examples or technologies should be comma-separated. Stop."
+                f"Voice: 1 or 2 sentences, under {max_words} words. Stop."
             )
         elif profile.route in {"reflective", "followup"} or profile.wants_detail:
-            max_words = min(settings.voice_detail_max_words, 58)
+            max_words = min(settings.voice_detail_max_words, 46)
             safety_parts.append(
-                f"Voice: use 2 or 3 short spoken sentences, under about {max_words} words. End cleanly."
+                f"Voice: 2 short spoken sentences, under {max_words} words. End cleanly."
             )
         else:
-            max_words = min(settings.voice_reply_max_words, 36)
+            max_words = min(settings.voice_reply_max_words, 30)
             safety_parts.append(
-                f"Voice: use 1 or 2 short spoken sentences, under about {max_words} words."
+                f"Voice: 1 or 2 short spoken sentences, under {max_words} words."
             )
     elif response_mode in {"text", "text-brief", "default"}:
         safety_parts.append(
@@ -432,6 +434,57 @@ def _looks_detail_request(text: str) -> bool:
         "why do you think",
     )
     return _contains_any_phrase(lowered, detail_markers)
+
+
+def _looks_alfred_demo_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "alfred",
+            "this project",
+            "demo",
+            "offline ai",
+            "offline-ai",
+            "local ai",
+            "raspberry pi",
+            "non-technical person",
+        ),
+    )
+
+
+def _looks_broad_factual_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "broad effects",
+            "what inventions",
+            "what technologies",
+            "world war",
+            "aftermath",
+            "printing press",
+            "society",
+            "history",
+        ),
+    )
+
+
+def _looks_uncertainty_trap(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "exact number",
+            "exact names",
+            "every engineer",
+            "every person",
+            "single invention",
+            "mattered most",
+            "most important",
+            "exactly how many",
+        ),
+    )
 
 
 def _looks_reflective_question(text: str) -> bool:

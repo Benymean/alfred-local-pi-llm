@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from .chat_runtime import (
     _build_system_prompt,
     _current_info_reply,
@@ -19,7 +21,13 @@ from .chat_runtime import (
     _num_predict_for_profile,
     _prepare_user_message,
 )
-from .chat_text import _clean_reply, _should_show_reply_text, _strip_leading_speaker_label, _trim_truncated_reply
+from .chat_text import (
+    _clean_reply,
+    _reply_ends_cleanly,
+    _should_show_reply_text,
+    _strip_leading_speaker_label,
+    _trim_truncated_reply,
+)
 from .chat_types import AssistantReply, ChatBackend, ChatRequestProfile
 from .config import AlfredSettings
 from .memory import AlfredMemory
@@ -87,7 +95,20 @@ class AlfredChatEngine:
             recent_turn_limit=profile.recent_turn_limit,
         )
         num_predict = _num_predict_for_profile(self.settings, profile, response_mode)
-        yield from self.backend.stream_reply(messages, num_predict=num_predict)
+        stream = self.backend.stream_reply(messages, num_predict=num_predict)
+        visible_parts: list[str] = []
+        try:
+            for chunk in stream:
+                if not chunk:
+                    continue
+                visible_parts.append(chunk)
+                yield chunk
+                if _should_stop_voice_stream("".join(visible_parts), profile, self.settings, response_mode):
+                    break
+        finally:
+            close = getattr(stream, "close", None)
+            if callable(close):
+                close()
 
     def finalize_streamed_reply(self, user_text: str, full_text: str) -> AssistantReply:
         profile = self.profile_for(user_text, response_mode="voice")
@@ -171,3 +192,27 @@ class AlfredChatEngine:
             ack_delay_seconds=ack_delay_seconds,
             remember_exchange=remember_exchange,
         )
+
+
+def _should_stop_voice_stream(
+    text: str,
+    profile: ChatRequestProfile,
+    settings: AlfredSettings,
+    response_mode: str,
+) -> bool:
+    if response_mode != "voice" or profile.route in {"current_info", "exact_reply"}:
+        return False
+
+    compact = " ".join(text.split()).strip()
+    if not compact or not _reply_ends_cleanly(compact):
+        return False
+
+    sentence_count = len(re.findall(r"[.!?]+", compact))
+    word_count = len(compact.split())
+    if profile.route == "factual":
+        return sentence_count >= 2 or word_count >= min(settings.voice_reply_max_words, 34)
+    if profile.route in {"audience", "casual", "nonsense"}:
+        return sentence_count >= 2 or word_count >= min(settings.voice_reply_max_words, 34)
+    if profile.route in {"reflective", "followup"}:
+        return sentence_count >= 2 or word_count >= min(settings.voice_detail_max_words, 48)
+    return False

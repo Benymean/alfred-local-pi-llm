@@ -49,6 +49,7 @@ class HailoChatBackend:
         self.last_metrics: dict[str, float | int | str] = {}
 
     def generate_reply(self, messages: list[dict[str, str]], *, num_predict: int | None = None) -> str:
+        self.last_metrics = {}
         candidate_messages = _candidate_message_sets(messages)
         started_at = time.perf_counter()
 
@@ -78,6 +79,7 @@ class HailoChatBackend:
             return "I could not reach my local model right now."
 
     def stream_reply(self, messages: list[dict[str, str]], *, num_predict: int | None = None):
+        self.last_metrics = {}
         candidate_messages = _candidate_message_sets(messages)
         started_at = time.perf_counter()
 

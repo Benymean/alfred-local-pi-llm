@@ -17,6 +17,8 @@ Outputs are written under `.alfred-state/evals/`:
 - `*.md` contains a quick human-readable report.
 - `*.meta.json` contains run settings and summary stats.
 
+The eval script applies the same default tuning values as `scripts/alfred_touch_env.sh` when environment variables are not already set, so direct benchmark runs match Alfred Touch launcher behavior.
+
 ## What It Logs
 
 For each prompt, the JSONL trace records:

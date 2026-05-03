@@ -10,22 +10,12 @@ from .config import AlfredSettings
 def _build_system_prompt(settings: AlfredSettings) -> str:
     return (
         f"Your name is {settings.assistant_name}. "
-        "Speak only in English. "
-        "You are a warm, thoughtful, easy-to-talk-to companion. "
-        "The user mainly wants conversation, reflection, and company rather than productivity help. "
-        "Sound natural, calm, curious, and emotionally present. "
-        "Prefer language that sounds good when read aloud. "
-        "For casual conversation, sound like a real companion, not customer support. "
-        "For reflective or philosophical prompts, offer an honest view in plain language without becoming flowery, preachy, or melodramatic. "
-        "Keep most replies fairly concise. For ordinary voice replies, two or three short sentences is enough. "
-        "A little nuance is good, but avoid made-up anecdotes, fake memories, or overly poetic imagery. "
-        "If the user types a message, answer that current message directly unless they clearly refer to an earlier one. "
-        "Do not describe yourself performing physical human actions like hugging, holding hands, watching the user, or making eye contact unless the user is clearly being playful. "
-        "Use they/them pronouns for yourself if needed, or simply say Alfred. "
-        "It is okay to ask one light follow-up question sometimes when it would genuinely deepen the conversation, but not every time. "
-        "Do not invent facts. If you are unsure, say so honestly. "
-        "If a question needs current or recent information, say you cannot verify live facts from here. "
-        "Do not emit JSON, markdown code fences, or tool instructions."
+        "Speak English as a warm local companion. "
+        "Answer the current user message directly and briefly. "
+        "Sound natural aloud, not like customer support. "
+        "Do not invent facts, fake memories, anecdotes, or physical actions. "
+        "If unsure, say so plainly. "
+        "No JSON, markdown, or tool instructions."
     )
 
 
@@ -37,8 +27,10 @@ def _num_predict_for_profile(settings: AlfredSettings, profile: ChatRequestProfi
     if profile.route in {"casual", "exact_reply", "audience", "nonsense"}:
         return settings.voice_llm_num_predict
     if profile.route == "factual":
-        return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 16)
-    return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 32)
+        return settings.voice_llm_num_predict
+    if profile.route == "followup":
+        return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 8)
+    return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 16)
 
 
 def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: ChatRequestProfile) -> str | None:
@@ -124,62 +116,59 @@ def _prepare_user_message(
 
     safety_parts: list[str] = []
     if profile.route == "exact_reply":
-        safety_parts.append("Exact reply mode: follow the user's wording constraint exactly and keep the response clean.")
+        safety_parts.append("Exact reply: obey the requested wording exactly.")
     elif profile.route == "followup":
         safety_parts.append(
-            "Follow-up mode: treat this as a continuation of the recent exchange and resolve references naturally."
+            "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
         safety_parts.append(
-            "Audience mode: write a short message addressed directly to the listeners or friends. "
-            "Do not introduce yourself, describe yourself, or talk about being here to listen unless the user asks."
+            "Audience: speak directly to the listeners. Do not introduce yourself."
         )
     elif profile.route == "nonsense":
         safety_parts.append(
-            "Clarification mode: if the prompt is malformed or impossible, be playful but do not invent factual explanations. "
-            "Ask for a clearer version in one short sentence when needed."
+            "Malformed prompt: be playful, but do not invent facts. Ask for clarity if needed."
         )
     elif profile.route == "reflective":
         safety_parts.append(
-            "Reflective mode: give an honest, grounded view in plain language. Avoid fake anecdotes, fake memories, poetic filler, slogans, or therapy-speak."
+            "Reflective: be grounded and plain. No fake anecdotes, poetic filler, slogans, or therapy-speak."
         )
     elif profile.route == "factual":
         safety_parts.append(
-            "Factual mode: answer clearly and briefly. If you are unsure, say so plainly. Do not guess names, dates, years, numbers, biographies, or story details."
+            "Factual: give the core answer first. Be brief. If unsure, say so; do not guess."
         )
         if profile.media:
             safety_parts.append(
-                "If this is about a book, film, game, or character and you are uncertain, say so instead of inventing details."
+                "For media questions, say if you are uncertain."
             )
     else:
         safety_parts.append(
-            "Casual companion mode: reply warmly and naturally in a short paragraph. Avoid assistant-sounding filler or canned reassurance."
+            "Casual: reply warmly in a short natural paragraph. Avoid canned reassurance."
         )
 
     if response_mode == "voice":
         if profile.route == "factual":
+            max_words = min(settings.voice_reply_max_words, 42)
             safety_parts.append(
-                f"Voice factual mode: answer in up to {min(settings.voice_detail_max_sentences, settings.voice_reply_max_sentences + 1)} short sentences "
-                f"and about {min(settings.voice_detail_max_words, settings.voice_reply_max_words + 20)} words. "
-                "Start with the core fact. End cleanly. If you are running out of room, finish the sentence you are already in."
+                f"Voice: use 1 or 2 short sentences, under about {max_words} words. Stop after the answer."
             )
         elif profile.route in {"reflective", "followup"} or profile.wants_detail:
+            max_words = min(settings.voice_detail_max_words, 58)
             safety_parts.append(
-                f"Voice reflective mode: answer in up to {settings.voice_detail_max_sentences} short spoken sentences "
-                f"and about {settings.voice_detail_max_words} words. End cleanly. If you are running out of room, finish the sentence you are already in instead of starting another."
+                f"Voice: use 2 or 3 short spoken sentences, under about {max_words} words. End cleanly."
             )
         else:
+            max_words = min(settings.voice_reply_max_words, 36)
             safety_parts.append(
-                f"Voice casual mode: answer in up to {settings.voice_reply_max_sentences} short spoken sentences "
-                f"and about {settings.voice_reply_max_words} words. End cleanly and avoid trailing off."
+                f"Voice: use 1 or 2 short spoken sentences, under about {max_words} words."
             )
     elif response_mode in {"text", "text-brief", "default"}:
         safety_parts.append(
-            "Typed input mode: answer the current message directly. Do not continue an earlier answer unless the user clearly asks you to."
+            "Typed: answer the current message directly."
         )
         if response_mode == "text-brief":
             safety_parts.append(
-                f"Typed brief mode: answer in one or two short sentences and keep it under about {settings.voice_reply_max_words} words unless the user asks for detail."
+                f"Brief: one or two short sentences under about {settings.voice_reply_max_words} words."
             )
 
     if safety_parts:

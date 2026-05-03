@@ -5,6 +5,7 @@ import argparse
 from dataclasses import asdict, dataclass
 import datetime as dt
 import json
+import os
 from pathlib import Path
 import random
 import statistics
@@ -21,6 +22,7 @@ if str(ROOT_DIR) not in sys.path:
 from alfred.chat_backends import HailoChatBackend, MockChatBackend
 from alfred.chat_engine import AlfredChatEngine
 from alfred.chat_runtime import _build_system_prompt, _num_predict_for_profile, _prepare_user_message
+from alfred.chat_runtime import _deterministic_reply
 from alfred.chat_text import _reply_ends_cleanly
 from alfred.config import AlfredSettings
 from alfred.memory import AlfredMemory
@@ -86,6 +88,23 @@ SUITES: dict[str, tuple[EvalCase, ...]] = {
     "none": (),
     "quick": QUICK_CASES,
     "validation": VALIDATION_CASES,
+}
+
+
+TOUCH_DEFAULT_ENV: dict[str, str] = {
+    "ALFRED_LLM_URL": "http://127.0.0.1:8000/api/chat",
+    "ALFRED_LLM_MODEL": "qwen3:1.7b",
+    "ALFRED_LLM_NUM_PREDICT": "112",
+    "ALFRED_VOICE_LLM_NUM_PREDICT": "80",
+    "ALFRED_VOICE_DETAIL_LLM_NUM_PREDICT": "128",
+    "ALFRED_LLM_NUM_CTX": "2048",
+    "ALFRED_LLM_TEMPERATURE": "0.35",
+    "ALFRED_VOICE_REPLY_MAX_WORDS": "60",
+    "ALFRED_VOICE_REPLY_MAX_SENTENCES": "4",
+    "ALFRED_VOICE_DETAIL_MAX_WORDS": "100",
+    "ALFRED_VOICE_DETAIL_MAX_SENTENCES": "5",
+    "ALFRED_WHISPER_MODE": "fast",
+    "ALFRED_TTS_TEMPO": "0.94",
 }
 
 
@@ -172,6 +191,11 @@ def resolve_repo_path(raw_path: str | None, default_path: Path) -> Path:
     if path.is_absolute():
         return path
     return ROOT_DIR / path
+
+
+def apply_touch_defaults() -> None:
+    for name, value in TOUCH_DEFAULT_ENV.items():
+        os.environ.setdefault(name, value)
 
 
 def load_cases(args: argparse.Namespace) -> list[EvalCase]:
@@ -306,6 +330,8 @@ def run_eval_case(
 ) -> dict[str, Any]:
     engine = AlfredChatEngine(settings, backend, memory)
     profile, prepared_user_text, messages, num_predict = build_messages_for_case(engine, settings, case, response_mode)
+    deterministic_text = _deterministic_reply(settings, case.prompt, profile)
+    model_call_expected = not profile.current_info and deterministic_text is None
     recent_turns_before = len(memory.recent_turns)
     summary_chars_before = len(memory.summary)
     if hasattr(backend, "last_metrics"):
@@ -365,14 +391,14 @@ def run_eval_case(
         "profile": asdict(profile),
         "prepared_user_text": prepared_user_text,
         "num_predict": num_predict,
-        "model_call_expected": not profile.current_info,
+        "model_call_expected": model_call_expected,
         "memory": {
             "recent_turns_before": recent_turns_before,
             "recent_turns_after": len(memory.recent_turns),
             "summary_chars_before": summary_chars_before,
             "summary_chars_after": len(memory.summary),
         },
-        "prompt": empty_prompt_stats() if profile.current_info else message_stats(messages),
+        "prompt": message_stats(messages) if model_call_expected else empty_prompt_stats(),
         "timings": {
             "first_visible_seconds": rounded(first_visible_seconds),
             "first_sentence_seconds": rounded(first_sentence_seconds),
@@ -396,7 +422,7 @@ def run_eval_case(
         "error": error,
     }
     if include_messages:
-        record["messages"] = [] if profile.current_info else messages
+        record["messages"] = messages if model_call_expected else []
     return record
 
 
@@ -668,6 +694,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    apply_touch_defaults()
     cases = load_cases(args)
     if not cases:
         print("No eval prompts selected.", file=sys.stderr)

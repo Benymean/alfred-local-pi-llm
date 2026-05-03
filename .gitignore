@@ -1,0 +1,43 @@
+# --- Python Artifacts ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# --- Local Runtime State ---
+.alfred-audio/
+.alfred-state/
+.alfred-display-preview/
+.alfred-display-preview-smoke/
+.alfred-reader-preview/
+.pytest_cache/
+books/
+*.log
+
+# --- Models & Downloaded Binaries ---
+piper/
+models/
+whisper.cpp/
+*.onnx
+*.bin
+*.tflite
+*.hef
+snapshots/
+*.tgz
+*.sha256
+
+# --- Generated Media ---
+*.wav
+*.mp3
+*.jpg
+*.png
+!alfred_touch_app/assets/favicon.png
+
+# --- OS / Editor Clutter ---
+.DS_Store
+Thumbs.db
+ehthumbs.db

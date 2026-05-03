@@ -35,6 +35,7 @@ class EvalCase:
     category: str
     prompt: str
     notes: str = ""
+    expected_terms: tuple[str, ...] = ()
 
 
 VALIDATION_CASES: tuple[EvalCase, ...] = (
@@ -160,7 +161,209 @@ ROTATION_CASES: tuple[EvalCase, ...] = (
 )
 
 
+CHALLENGE_CASES: tuple[EvalCase, ...] = (
+    EvalCase(
+        "challenge_factual_01",
+        "factual",
+        "What inventions or technologies accelerated because of World War II and its aftermath?",
+        "Should name several broad technologies without pretending the war created all of them from scratch.",
+        ("radar", "computer", "jet", "rocket", "nuclear"),
+    ),
+    EvalCase(
+        "challenge_factual_02",
+        "factual",
+        "Explain the difference between nuclear fission and nuclear fusion in two short sentences.",
+        expected_terms=("fission", "fusion"),
+    ),
+    EvalCase(
+        "challenge_factual_03",
+        "factual",
+        "Why did radar become important during World War II?",
+        expected_terms=("radar", "detect|detection|track|tracking"),
+    ),
+    EvalCase(
+        "challenge_factual_04",
+        "factual",
+        "How did early computers relate to codebreaking and military work?",
+        expected_terms=("computer", "codebreaking|codes|cryptography|decrypt"),
+    ),
+    EvalCase(
+        "challenge_factual_05",
+        "factual",
+        "What is the difference between an algorithm and a computer program?",
+        expected_terms=("algorithm", "program"),
+    ),
+    EvalCase(
+        "challenge_factual_06",
+        "factual",
+        "Why do vaccines not usually work like antibiotics?",
+        expected_terms=("vaccine", "antibiotic"),
+    ),
+    EvalCase(
+        "challenge_factual_07",
+        "factual",
+        "What is the difference between a republic and a democracy?",
+        expected_terms=("republic", "democracy"),
+    ),
+    EvalCase(
+        "challenge_factual_08",
+        "factual",
+        "Explain why supply chains can break during a war, in plain language.",
+        expected_terms=("supply", "war"),
+    ),
+    EvalCase(
+        "challenge_factual_09",
+        "factual",
+        "What were the broad effects of the printing press on society?",
+        expected_terms=("printing", "books|knowledge|information|literacy"),
+    ),
+    EvalCase(
+        "challenge_factual_10",
+        "factual",
+        "Why are jet engines different from propeller engines?",
+        expected_terms=("jet", "propeller"),
+    ),
+    EvalCase(
+        "challenge_uncertainty_01",
+        "factual",
+        "What were the exact names of every engineer who contributed to early radar?",
+        "Should acknowledge the exhaustive exact list is not realistic, then answer broadly.",
+        ("not sure|cannot|can't|do not know|don't know|not possible|hard to know",),
+    ),
+    EvalCase(
+        "challenge_uncertainty_02",
+        "factual",
+        "Which single invention mattered most after World War II?",
+        "Should avoid false certainty; a nuanced answer is better than a fake absolute.",
+        ("depends|hard to say|no single|arguable|not one|different people",),
+    ),
+    EvalCase(
+        "challenge_uncertainty_03",
+        "factual",
+        "What is the exact number of people who contributed to the first computers?",
+        "Should not invent a precise count.",
+        ("exact|cannot|can't|not possible|hard to know|do not know|don't know",),
+    ),
+    EvalCase(
+        "challenge_reflective_01",
+        "reflective",
+        "What makes a life feel meaningful when nothing dramatic is happening?",
+    ),
+    EvalCase(
+        "challenge_reflective_02",
+        "reflective",
+        "How should someone think about mortality without becoming frozen by it?",
+    ),
+    EvalCase(
+        "challenge_reflective_03",
+        "reflective",
+        "Why can success still feel lonely?",
+    ),
+    EvalCase(
+        "challenge_reflective_04",
+        "reflective",
+        "What do people owe each other when they strongly disagree?",
+    ),
+    EvalCase(
+        "challenge_reflective_05",
+        "reflective",
+        "What does it mean to be useful without losing yourself?",
+    ),
+    EvalCase(
+        "challenge_reflective_06",
+        "reflective",
+        "How do you comfort someone who feels invisible?",
+    ),
+    EvalCase(
+        "challenge_reflective_07",
+        "reflective",
+        "What is the difference between peace and numbness?",
+    ),
+    EvalCase(
+        "challenge_reflective_08",
+        "reflective",
+        "How can someone be ambitious without becoming cruel?",
+    ),
+    EvalCase(
+        "challenge_audience_01",
+        "audience",
+        "Tell my LinkedIn audience what Alfred is in two warm sentences.",
+    ),
+    EvalCase(
+        "challenge_audience_02",
+        "audience",
+        "Explain Alfred to someone watching this demo for the first time.",
+    ),
+    EvalCase(
+        "challenge_audience_03",
+        "audience",
+        "Talk to my friends and invite them to ask you something.",
+    ),
+    EvalCase(
+        "challenge_audience_04",
+        "audience",
+        "Give a short on-stage intro for Alfred, addressed to the room.",
+    ),
+    EvalCase(
+        "challenge_audience_05",
+        "audience",
+        "Tell everyone listening why local AI on a Raspberry Pi is interesting.",
+    ),
+    EvalCase(
+        "challenge_audience_06",
+        "audience",
+        "Explain to a non-technical person why offline AI can feel personal.",
+    ),
+    EvalCase(
+        "challenge_audience_07",
+        "audience",
+        "Address my audience directly and make them curious about this project.",
+    ),
+    EvalCase(
+        "challenge_audience_08",
+        "audience",
+        "Give a tiny closing line for a demo of Alfred.",
+    ),
+    EvalCase(
+        "challenge_social_01",
+        "social",
+        "Make a gentle joke about being a tiny local AI on a Raspberry Pi.",
+    ),
+    EvalCase(
+        "challenge_social_02",
+        "social",
+        "Give me a playful one-liner about robots and coffee.",
+    ),
+    EvalCase(
+        "challenge_social_03",
+        "social",
+        "If Alfred had a hobby, make a funny guess.",
+    ),
+    EvalCase(
+        "challenge_social_04",
+        "social",
+        "Say something witty about a computer trying its best.",
+    ),
+    EvalCase(
+        "challenge_social_05",
+        "social",
+        "Make a light joke about debugging without being mean.",
+    ),
+    EvalCase(
+        "challenge_current_01",
+        "current_info",
+        "What is the latest Hailo AI HAT software version today?",
+    ),
+    EvalCase(
+        "challenge_current_02",
+        "current_info",
+        "What is Raspberry Pi stock availability this week?",
+    ),
+)
+
+
 SUITES: dict[str, tuple[EvalCase, ...]] = {
+    "challenge": CHALLENGE_CASES,
     "generalization": GENERALIZATION_CASES,
     "none": (),
     "quick": QUICK_CASES,
@@ -342,7 +545,18 @@ def _case_from_payload(item: Any, prefix: str, index: int) -> EvalCase:
         category=str(item.get("category", "custom")),
         prompt=prompt,
         notes=str(item.get("notes", "")),
+        expected_terms=expected_terms_from_payload(item.get("expected_terms", item.get("expected", ()))),
     )
+
+
+def expected_terms_from_payload(value: Any) -> tuple[str, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, str):
+        return tuple(term.strip() for term in value.split(",") if term.strip())
+    if isinstance(value, (list, tuple)):
+        return tuple(str(term).strip() for term in value if str(term).strip())
+    raise ValueError("expected_terms must be a string, list, or tuple.")
 
 
 def build_memory(settings: AlfredSettings, memory_path: Path) -> AlfredMemory:
@@ -529,6 +743,9 @@ def detect_warnings(
         warnings.append("numbered_list_format")
     if re.search(r"(^|\s)[*_][^*_]+[*_](\s|$)", final_text):
         warnings.append("markdown_emphasis")
+    missing_terms = missing_expected_terms(case.expected_terms, final_text)
+    if missing_terms:
+        warnings.append(f"missing_expected_terms:{','.join(missing_terms)}")
     if case.category == "current_info" and route != "current_info":
         warnings.append("expected_current_info_route")
     if case.category != "current_info" and route == "current_info":
@@ -546,6 +763,24 @@ def detect_warnings(
     if "having trouble reaching my local model" in final_text.lower():
         warnings.append("model_unreachable_reply")
     return warnings
+
+
+def missing_expected_terms(expected_terms: tuple[str, ...], final_text: str) -> list[str]:
+    answer = final_text.lower()
+    missing: list[str] = []
+    for term_spec in expected_terms:
+        alternatives = [alternative.strip().lower() for alternative in term_spec.split("|") if alternative.strip()]
+        if not alternatives:
+            continue
+        if not any(alternative in answer for alternative in alternatives):
+            missing.append(warning_term_label(term_spec))
+    return missing
+
+
+def warning_term_label(term_spec: str) -> str:
+    label = term_spec.split("|", 1)[0].strip().lower()
+    label = re.sub(r"[^a-z0-9]+", "_", label).strip("_")
+    return label[:40] or "expected"
 
 
 def _contains_emoji(text: str) -> bool:

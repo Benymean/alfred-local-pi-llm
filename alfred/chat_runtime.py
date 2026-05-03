@@ -202,6 +202,9 @@ def _looks_factual_question(text: str) -> bool:
         "who wrote",
         "what is",
         "what was",
+        "what were",
+        "what inventions",
+        "what technologies",
         "what gas",
         "what planet",
         "who was",
@@ -214,16 +217,20 @@ def _looks_factual_question(text: str) -> bool:
         "where was",
         "how many",
         "how much",
+        "how did",
         "how does",
         "explain ",
         "name ",
         "list ",
         "which ",
+        "why did",
+        "why do ",
         "why do we have",
         "why do magnets",
         "why does ice",
         "why does water",
         "why does the",
+        "why are ",
         "why is the",
         "why are there",
     )
@@ -302,8 +309,6 @@ def _looks_social_prompt(text: str) -> bool:
 def _looks_contextual_followup(text: str) -> bool:
     lowered = _normalized_prompt_text(text)
     followup_markers = (
-        "still",
-        "again",
         "more about",
         "continue",
         "what about ",
@@ -322,7 +327,7 @@ def _looks_contextual_followup(text: str) -> bool:
     )
     if any(marker in lowered for marker in followup_markers):
         return True
-    return lowered.startswith(("and ", "also ", "so ", "then "))
+    return lowered.startswith(("and ", "also ", "so ", "then ", "still ", "again "))
 
 
 def _looks_interesting_prompt(text: str) -> bool:
@@ -369,10 +374,22 @@ def _looks_audience_prompt(text: str) -> bool:
             "tell them",
             "say something kind to everyone",
             "everyone listening",
+            "linkedin audience",
+            "my audience",
             "my friends",
+            "talk to my friends",
             "welcome message",
             "message for everyone",
             "message for my friends",
+            "watching this demo",
+            "addressed to the room",
+            "address my audience",
+            "on-stage intro",
+            "non-technical person",
+            "the listeners",
+            "the room",
+            "closing line",
+            "demo of alfred",
         ),
     )
 
@@ -425,15 +442,30 @@ def _looks_reflective_question(text: str) -> bool:
         "meaningful life",
         "what matters in life",
         "what makes life",
+        "meaningful when",
+        "nothing dramatic",
         "purpose",
+        "mortality",
+        "success still",
+        "feel lonely",
         "why do people need",
         "why do humans need",
         "how do you think",
+        "how should someone think",
+        "how do you comfort",
         "what does it mean",
         "what do you make of",
         "what helps when",
         "what helps people",
         "what makes a person",
+        "what do people owe",
+        "owe each other",
+        "feels invisible",
+        "feel invisible",
+        "peace and numbness",
+        "losing yourself",
+        "without becoming cruel",
+        "becoming frozen",
         "why do people remember",
         "why do people feel",
         "what do people need",

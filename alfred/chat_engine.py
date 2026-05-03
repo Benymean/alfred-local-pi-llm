@@ -212,9 +212,11 @@ def _should_stop_voice_stream(
     sentence_count = len(re.findall(r"[.!?]+", compact))
     word_count = len(compact.split())
     if profile.route == "factual":
-        return sentence_count >= 2 or word_count >= min(settings.voice_reply_max_words, 34)
-    if profile.route in {"audience", "casual", "nonsense"}:
-        return sentence_count >= 2 or word_count >= min(settings.voice_reply_max_words, 34)
+        return sentence_count >= 3 or word_count >= min(settings.voice_detail_max_words, 50)
+    if profile.route in {"audience", "casual"}:
+        return sentence_count >= 3 or word_count >= min(settings.voice_reply_max_words, 58)
+    if profile.route == "nonsense":
+        return sentence_count >= 1 or word_count >= min(settings.voice_reply_max_words, 28)
     if profile.route in {"reflective", "followup"}:
-        return sentence_count >= 2 or word_count >= min(settings.voice_detail_max_words, 48)
+        return sentence_count >= 4 or word_count >= min(settings.voice_detail_max_words, 76)
     return False

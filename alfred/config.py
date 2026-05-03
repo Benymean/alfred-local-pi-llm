@@ -39,13 +39,13 @@ class AlfredSettings:
     voice_detail_llm_num_predict: int = field(
         default_factory=lambda: int(os.environ.get("ALFRED_VOICE_DETAIL_LLM_NUM_PREDICT", "96"))
     )
-    voice_reply_max_words: int = field(default_factory=lambda: int(os.environ.get("ALFRED_VOICE_REPLY_MAX_WORDS", "45")))
-    voice_reply_max_sentences: int = field(default_factory=lambda: int(os.environ.get("ALFRED_VOICE_REPLY_MAX_SENTENCES", "2")))
+    voice_reply_max_words: int = field(default_factory=lambda: int(os.environ.get("ALFRED_VOICE_REPLY_MAX_WORDS", "60")))
+    voice_reply_max_sentences: int = field(default_factory=lambda: int(os.environ.get("ALFRED_VOICE_REPLY_MAX_SENTENCES", "4")))
     voice_detail_max_words: int = field(
-        default_factory=lambda: int(os.environ.get("ALFRED_VOICE_DETAIL_MAX_WORDS", "72"))
+        default_factory=lambda: int(os.environ.get("ALFRED_VOICE_DETAIL_MAX_WORDS", "100"))
     )
     voice_detail_max_sentences: int = field(
-        default_factory=lambda: int(os.environ.get("ALFRED_VOICE_DETAIL_MAX_SENTENCES", "4"))
+        default_factory=lambda: int(os.environ.get("ALFRED_VOICE_DETAIL_MAX_SENTENCES", "5"))
     )
     memory_path: Path = field(
         default_factory=lambda: _env_path(

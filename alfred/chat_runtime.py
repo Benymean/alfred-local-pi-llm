@@ -12,7 +12,7 @@ def _build_system_prompt(settings: AlfredSettings) -> str:
     return (
         f"Your name is {settings.assistant_name}. "
         "Speak English as a warm local companion. "
-        "Answer the current user message directly and briefly. "
+        "Answer the current user message directly, with enough depth to be useful. "
         "Sound natural aloud, not like customer support. "
         "Do not invent facts, fake memories, anecdotes, feelings, or physical actions. "
         "Do not claim to be human or a real person. "
@@ -26,13 +26,15 @@ def _num_predict_for_profile(settings: AlfredSettings, profile: ChatRequestProfi
         return settings.voice_llm_num_predict
     if response_mode != "voice":
         return settings.llm_num_predict
-    if profile.route in {"casual", "exact_reply", "audience", "nonsense"}:
+    if profile.route in {"exact_reply", "nonsense"}:
         return settings.voice_llm_num_predict
     if profile.route == "factual":
-        return min(settings.voice_llm_num_predict, 72)
+        return min(settings.voice_detail_llm_num_predict, max(settings.voice_llm_num_predict, 96))
+    if profile.route in {"casual", "audience"}:
+        return min(settings.voice_detail_llm_num_predict, max(settings.voice_llm_num_predict, 112))
     if profile.route == "followup":
-        return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 8)
-    return min(settings.voice_detail_llm_num_predict, settings.voice_llm_num_predict + 8)
+        return settings.voice_detail_llm_num_predict
+    return settings.voice_detail_llm_num_predict
 
 
 def _deterministic_reply(settings: AlfredSettings, user_text: str, profile: ChatRequestProfile) -> str | None:
@@ -141,31 +143,17 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append("Audience: speak directly to listeners in one concrete line.")
+        safety_parts.append(
+            "Audience: speak directly to the people. "
+            "If asked for a message to listeners, give a human thought with a little substance, not a product pitch."
+        )
         if _looks_project_explanation_prompt(cleaned):
-            safety_parts.append(
-                "Project answer: only if the user asks about Alfred, the demo, Raspberry Pi, local AI, or offline AI, "
-                "explain the project in plain human words."
-            )
-        else:
-            safety_parts.append(
-                "People-message: do not explain Alfred, the demo, Raspberry Pi, local AI, or offline AI. "
-                "Give the listeners a human motivational line about effort, curiosity, building, or keeping going."
-            )
-            if _looks_linkedin_promo_prompt(cleaned):
-                safety_parts.append(
-                    "LinkedIn tone: respect the hustle and the work behind building things. No corporate pep talk."
-                )
+            safety_parts.append("Only mention Alfred's project or hardware when the user explicitly asks about it.")
         safety_parts.append(
             "Avoid generic companion filler: no 'I am here to listen', 'I am here to help', "
             "'I am here to chat', 'glad you are here', 'thanks for being here', or 'what is on your mind'. "
-            "Prefer starting with 'you', 'people', 'builders', or 'LinkedIn' instead of 'I'."
+            "Prefer starting with 'you', 'people', or 'builders' instead of 'I'."
         )
-        if _looks_project_explanation_prompt(cleaned):
-            safety_parts.append(
-                "If asked about Alfred: local offline AI companion on a Raspberry Pi. "
-                "No habit-learning, mood-learning, always-listening, real-person, or real-feelings claims."
-            )
     elif profile.route == "nonsense":
         safety_parts.append(
             "Malformed prompt: answer in one plain sentence. Be playful if useful, but do not invent facts, use emoji, or format as a list."
@@ -186,29 +174,39 @@ def _prepare_user_message(
             )
     else:
         safety_parts.append(
-            "Casual: reply warmly in a short natural paragraph. Avoid canned reassurance."
+            "Casual: reply warmly in a natural paragraph. Avoid canned reassurance."
         )
         if _looks_social_demo_prompt(cleaned) or _looks_alfred_demo_prompt(cleaned):
             safety_parts.append(
-                "Demo-social: give a human opener for the moment. Do not explain Alfred unless asked. "
+                "Demo-social: give a human opener for the moment. Do not turn it into a product pitch unless asked. "
                 "Avoid generic companion filler like 'glad you are here', 'I am here to chat', or 'I am here to listen'."
             )
 
     if response_mode == "voice":
         if profile.route == "factual":
-            max_words = min(settings.voice_reply_max_words, 32)
+            max_words = min(settings.voice_detail_max_words, 48)
             safety_parts.append(
-                f"Voice: 1 or 2 sentences, under {max_words} words. Stop."
+                f"Voice: 2 or 3 spoken sentences when useful, under {max_words} words. End cleanly."
             )
         elif profile.route in {"reflective", "followup"} or profile.wants_detail:
-            max_words = min(settings.voice_detail_max_words, 46)
+            max_words = min(settings.voice_detail_max_words, 76)
             safety_parts.append(
-                f"Voice: 2 short spoken sentences, under {max_words} words. End cleanly."
+                f"Voice: 2 to 4 spoken sentences, under {max_words} words. End cleanly."
+            )
+        elif profile.route == "audience":
+            max_words = min(settings.voice_reply_max_words, 58)
+            safety_parts.append(
+                f"Voice: 2 or 3 spoken sentences, under {max_words} words. End cleanly."
+            )
+        elif profile.route == "nonsense":
+            max_words = min(settings.voice_reply_max_words, 28)
+            safety_parts.append(
+                f"Voice: 1 short spoken sentence, under {max_words} words."
             )
         else:
-            max_words = min(settings.voice_reply_max_words, 30)
+            max_words = min(settings.voice_reply_max_words, 52)
             safety_parts.append(
-                f"Voice: 1 or 2 short spoken sentences, under {max_words} words."
+                f"Voice: 2 or 3 spoken sentences when useful, under {max_words} words."
             )
     elif response_mode in {"text", "text-brief", "default"}:
         safety_parts.append(

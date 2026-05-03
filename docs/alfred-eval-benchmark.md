@@ -132,6 +132,8 @@ Start with the Markdown report:
 - `unexpected_deterministic_reply` means a prompt that should reach the model was answered by a fast reply.
 - `duplicate_answer_text` means multiple LinkedIn/demo prompts produced the same answer text.
 - `canned_demo_phrase` means a social/demo answer used a known canned or awkward phrase.
+- `generic_companion_phrase` means a social/demo answer collapsed into generic helper language such as "I am here to listen."
+- `unsupported_personhood_claim` means Alfred claimed human/personhood or real feelings.
 - `unexpected_current_info_route` means Alfred refused a stable question as if it needed live lookup.
 - Large prompt word counts usually point to memory or prompt-size overhead.
 

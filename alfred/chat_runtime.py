@@ -14,7 +14,8 @@ def _build_system_prompt(settings: AlfredSettings) -> str:
         "Speak English as a warm local companion. "
         "Answer the current user message directly and briefly. "
         "Sound natural aloud, not like customer support. "
-        "Do not invent facts, fake memories, anecdotes, or physical actions. "
+        "Do not invent facts, fake memories, anecdotes, feelings, or physical actions. "
+        "Do not claim to be human or a real person. "
         "If unsure, say so plainly. "
         "Use plain sentences: no emoji, markdown, bullets, numbered lists, or tool instructions."
     )
@@ -140,9 +141,19 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append("Audience: speak directly to listeners; warm, brief, specific to this moment, no canned line or generic question.")
+        safety_parts.append(
+            "Audience: speak directly to listeners in one concrete line. "
+            "Use a detail from the request: LinkedIn, builders, demo, room, Raspberry Pi, local AI, offline AI, or skepticism."
+        )
+        safety_parts.append(
+            "Avoid generic companion filler: no 'I am here to listen', 'I am here to help', "
+            "'glad you are here', 'thanks for being here', or 'what is on your mind'."
+        )
         if _looks_alfred_demo_prompt(cleaned):
-            safety_parts.append("If asked about Alfred: local offline AI companion on a Raspberry Pi. No habit or mood-learning claims.")
+            safety_parts.append(
+                "If asked about Alfred: local offline AI companion on a Raspberry Pi. "
+                "No habit-learning, mood-learning, always-listening, real-person, or real-feelings claims."
+            )
     elif profile.route == "nonsense":
         safety_parts.append(
             "Malformed prompt: answer in one plain sentence. Be playful if useful, but do not invent facts, use emoji, or format as a list."
@@ -165,6 +176,11 @@ def _prepare_user_message(
         safety_parts.append(
             "Casual: reply warmly in a short natural paragraph. Avoid canned reassurance."
         )
+        if _looks_social_demo_prompt(cleaned) or _looks_alfred_demo_prompt(cleaned):
+            safety_parts.append(
+                "Demo-social: make it concrete to the demo or Alfred. "
+                "Avoid generic companion filler like 'glad you are here' or 'I am here to listen'."
+            )
 
     if response_mode == "voice":
         if profile.route == "factual":
@@ -330,7 +346,8 @@ def _looks_contextual_followup(text: str) -> bool:
         "i mean",
         "like you said",
         "earlier",
-        "before",
+        "from before",
+        "you said before",
     )
     if any(marker in lowered for marker in followup_markers):
         return True
@@ -482,6 +499,8 @@ def _looks_alfred_demo_prompt(text: str) -> bool:
             "alfred",
             "this project",
             "demo",
+            "just a toy",
+            "what makes you special",
             "offline ai",
             "offline-ai",
             "local ai",

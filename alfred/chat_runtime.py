@@ -141,15 +141,27 @@ def _prepare_user_message(
             "Follow-up: use only the recent exchange. Answer directly and briefly."
         )
     elif profile.route == "audience":
-        safety_parts.append(
-            "Audience: speak directly to listeners in one concrete line. "
-            "Use a detail from the request: LinkedIn, builders, demo, room, Raspberry Pi, local AI, offline AI, or skepticism."
-        )
+        safety_parts.append("Audience: speak directly to listeners in one concrete line.")
+        if _looks_project_explanation_prompt(cleaned):
+            safety_parts.append(
+                "Project answer: only if the user asks about Alfred, the demo, Raspberry Pi, local AI, or offline AI, "
+                "explain the project in plain human words."
+            )
+        else:
+            safety_parts.append(
+                "People-message: do not explain Alfred, the demo, Raspberry Pi, local AI, or offline AI. "
+                "Give the listeners a human motivational line about effort, curiosity, building, or keeping going."
+            )
+            if _looks_linkedin_promo_prompt(cleaned):
+                safety_parts.append(
+                    "LinkedIn tone: respect the hustle and the work behind building things. No corporate pep talk."
+                )
         safety_parts.append(
             "Avoid generic companion filler: no 'I am here to listen', 'I am here to help', "
-            "'glad you are here', 'thanks for being here', or 'what is on your mind'."
+            "'I am here to chat', 'glad you are here', 'thanks for being here', or 'what is on your mind'. "
+            "Prefer starting with 'you', 'people', 'builders', or 'LinkedIn' instead of 'I'."
         )
-        if _looks_alfred_demo_prompt(cleaned):
+        if _looks_project_explanation_prompt(cleaned):
             safety_parts.append(
                 "If asked about Alfred: local offline AI companion on a Raspberry Pi. "
                 "No habit-learning, mood-learning, always-listening, real-person, or real-feelings claims."
@@ -178,8 +190,8 @@ def _prepare_user_message(
         )
         if _looks_social_demo_prompt(cleaned) or _looks_alfred_demo_prompt(cleaned):
             safety_parts.append(
-                "Demo-social: make it concrete to the demo or Alfred. "
-                "Avoid generic companion filler like 'glad you are here' or 'I am here to listen'."
+                "Demo-social: give a human opener for the moment. Do not explain Alfred unless asked. "
+                "Avoid generic companion filler like 'glad you are here', 'I am here to chat', or 'I am here to listen'."
             )
 
     if response_mode == "voice":
@@ -522,6 +534,39 @@ def _looks_linkedin_promo_prompt(text: str) -> bool:
             "watching this demo",
             "on-stage",
             "on stage",
+        ),
+    )
+
+
+def _looks_project_explanation_prompt(text: str) -> bool:
+    lowered = _normalized_prompt_text(text)
+    return _contains_any_phrase(
+        lowered,
+        (
+            "what alfred is",
+            "what is alfred",
+            "explain alfred",
+            "explain this project",
+            "this project",
+            "what makes alfred",
+            "alfred feel interesting",
+            "what makes you special",
+            "just a toy",
+            "why local ai",
+            "why local offline ai",
+            "why offline ai",
+            "why small local ai",
+            "why this little raspberry pi ai",
+            "raspberry pi ai matters",
+            "care about local ai",
+            "local ai matters",
+            "local offline ai is cool",
+            "offline ai is cool",
+            "what they should notice about alfred",
+            "remember about alfred",
+            "small local ai can feel different",
+            "offline ai can feel different",
+            "local ai can feel different",
         ),
     )
 

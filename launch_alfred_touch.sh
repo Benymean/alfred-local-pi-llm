@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
+source "$ROOT_DIR/scripts/alfred_touch_env.sh"
+
 PORT="${ALFRED_TOUCH_PORT:-8081}"
 APP_URL="http://127.0.0.1:${PORT}/"
 HEALTH_URL="http://127.0.0.1:${PORT}/api/health"
@@ -38,9 +40,15 @@ if [[ -z "$BROWSER_CMD" ]]; then
   exit 1
 fi
 
+echo "Starting Alfred Touch..." >"$LOG_FILE"
+if ! "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh" >>"$LOG_FILE" 2>&1; then
+  echo "Alfred touch bootstrap failed. Check $LOG_FILE" >&2
+  exit 1
+fi
+
 if ! curl -fsS "$HEALTH_URL" >/dev/null 2>&1; then
   echo "Alfred touch backend is not running yet. Starting it now..."
-  nohup "$ROOT_DIR/start_alfred_touch.sh" >"$LOG_FILE" 2>&1 &
+  nohup env ALFRED_SKIP_BOOTSTRAP=1 "$ROOT_DIR/start_alfred_touch.sh" >>"$LOG_FILE" 2>&1 &
   if ! wait_for_backend 30; then
     echo "Alfred touch backend did not become healthy. Check $LOG_FILE" >&2
     exit 1

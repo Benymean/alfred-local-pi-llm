@@ -21,6 +21,8 @@ Tracked source code:
 - `alfred/` shared chat, config, memory, and STT logic
 - `alfred_touch_app/` FastAPI touch UI package
 - `docs/` project notes, checkpoints, and this guide
+- `scripts/bootstrap_alfred_touch.sh` startup preflight and self-healing logic
+- `scripts/alfred_touch_env.sh` shared launcher/runtime defaults
 - launcher/setup/healthcheck shell scripts
 - `requirements.txt`
 - `README.md`
@@ -233,6 +235,14 @@ chmod +x *.sh scripts/setup_alfred_audio.sh
 
 After the rename, test Alfred from the desktop shortcut again.
 
+If STT fails immediately after the rename with `whisper-cli` exit status `127`, that means the old Whisper build still points at the previous path. The new bootstrap script should repair this automatically on the next launch, but you can also rebuild it manually:
+
+```bash
+cd /home/piadmin/alfred-local-pi-llm
+rm -rf whisper.cpp/build
+./scripts/setup_alfred_audio.sh
+```
+
 ## Local Archive Recommendation
 
 Do not continue active work in the old Mac folder:
@@ -248,6 +258,7 @@ As of this guide:
 - the clean GitHub repo exists and is usable
 - the clean Mac clone exists and is the preferred repo for future work
 - the Pi runtime was repaired and validated
+- Alfred startup now includes bootstrap logic for local model-server startup and Whisper self-repair
 - the remaining optimization work is product-level, not deployment-level
 
 That means Alfred is now in a stable enough state to begin a fresh Codex project from the clean standalone repo.

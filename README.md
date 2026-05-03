@@ -39,6 +39,8 @@ alfred-local-pi-llm/
 │   ├── tts.py
 │   └── web.py
 ├── docs/                           # Validation and project notes
+├── scripts/bootstrap_alfred_touch.sh
+├── scripts/alfred_touch_env.sh
 ├── scripts/setup_alfred_audio.sh   # Piper + Whisper setup
 ├── healthcheck_alfred_touch.sh     # Pi hardware/audio checks
 ├── healthcheck_alfred_software.sh  # Backend and HTTP smoke checks
@@ -108,6 +110,18 @@ To install the desktop shortcut again:
 ./install_alfred_touch_launcher.sh
 ```
 
+## Automatic Bootstrap
+
+Before Alfred launches, it now runs a lightweight bootstrap step that:
+
+- checks Python runtime imports
+- repairs or rebuilds `whisper.cpp` if the binary is broken after a repo move
+- restores missing Piper / Whisper runtime assets by calling `scripts/setup_alfred_audio.sh`
+- starts a local `hailo-ollama` or `ollama` server if `ALFRED_LLM_URL` points at localhost and the server is offline
+- verifies that the configured model is listed by the local model server
+
+This is meant to remove the most common Pi caveats from normal launching. In the typical case, tapping the Alfred desktop icon should now be enough.
+
 ## Runtime Notes
 
 - UI assets now live inside `alfred_touch_app/`, not top-level `static/` or `templates/`.
@@ -116,6 +130,8 @@ To install the desktop shortcut again:
 - Large local assets like `piper/`, `models/`, and `whisper.cpp/` are expected on disk but should stay out of Git.
 - The validated Pi defaults currently use `ALFRED_ARECORD_DEVICE=plughw:3,0`, `ALFRED_APLAY_DEVICE=plughw:2,0`, and `ALFRED_WHISPER_MODE=fast`.
 - If your Pi uses different audio hardware, override those environment variables instead of editing the code path elsewhere.
+- Model-server startup logs are written to `.alfred-model-server.log`, and launcher/backend bootstrap output is appended to `.alfred-touch-launcher.log`.
+- If you want Alfred to automatically pull a missing local model, set `ALFRED_AUTO_PULL_MODEL=1` before launching.
 - For a fuller handoff and future Codex starting point, see `docs/codex-project-guide.md`.
 
 ## Rollback

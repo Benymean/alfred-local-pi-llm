@@ -40,6 +40,8 @@ echo "[3/5] Installing Alfred touch Python dependencies..."
 
 echo
 echo "[4/5] Installing local speech/runtime assets..."
+chmod +x "$ROOT_DIR/scripts/alfred_touch_env.sh"
+chmod +x "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh"
 chmod +x "$ROOT_DIR/scripts/setup_alfred_audio.sh"
 "$ROOT_DIR/scripts/setup_alfred_audio.sh"
 
@@ -50,7 +52,9 @@ chmod +x \
   "$ROOT_DIR/launch_alfred_touch.sh" \
   "$ROOT_DIR/install_alfred_touch_launcher.sh" \
   "$ROOT_DIR/healthcheck_alfred_touch.sh" \
-  "$ROOT_DIR/healthcheck_alfred_software.sh"
+  "$ROOT_DIR/healthcheck_alfred_software.sh" \
+  "$ROOT_DIR/scripts/bootstrap_alfred_touch.sh" \
+  "$ROOT_DIR/scripts/alfred_touch_env.sh"
 
 echo "Installing Alfred Touch desktop launcher..."
 "$ROOT_DIR/install_alfred_touch_launcher.sh"

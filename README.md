@@ -1,34 +1,19 @@
 # Alfred Local Pi LLM
 
-Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal is simple: make a small local device that can listen, think, and speak without depending on a cloud LLM.
+Alfred is an offline AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal was to make a small local device that can listen, think, and speak without depending on a cloud LLM.
 
-The project combines a local touchscreen web app, speech-to-text, a Hailo/Ollama-compatible model server, streaming replies, text-to-speech, health checks, and an evaluation loop for measuring answer quality and speed on real Pi hardware.
-
-## Project Scope
-
-Alfred is focused on a practical local AI appliance:
-
-- Run a local chat model on Raspberry Pi hardware.
-- Capture voice from the browser and transcribe it locally.
-- Stream model responses back into the UI as they arrive.
-- Speak replies aloud with local text-to-speech.
-- Keep the UI simple enough for a small touchscreen.
-- Measure latency, answer quality, routing, and failure cases with repeatable evals.
-- Favor offline/private operation over cloud convenience.
-
-This repository is the active source of truth for the Alfred touchscreen build.
 
 ## Current Status
 
 Alfred currently supports:
 
 - FastAPI backend for the local touch app.
-- Browser-based touch UI with chat, voice, health, and settings flows.
+- Browser-based touch UI with chat, voice, health diagnostics, and settings flows.
 - Local speech-to-text through `whisper.cpp`.
 - Local text-to-speech through Piper.
 - Hailo/Ollama-compatible chat backend.
 - Streaming voice replies with sentence-level TTS playback.
-- Route-aware prompting for factual, reflective, social, audience, follow-up, malformed, and current-info requests.
+- Route-aware prompting for factual, reflective, social, audience, follow-up, non-sense, and current-info requests.
 - Guardrails for live/current facts that cannot be verified offline.
 - Rolling memory with tighter boundaries so stale context does not leak into every answer.
 - Hardware and software health checks for the Pi, display, touch input, audio, Hailo device, and model server.
@@ -42,7 +27,8 @@ Validated target hardware:
 
 - Raspberry Pi 5
 - Raspberry Pi OS 64-bit
-- Hailo AI HAT+ 2 / Hailo AI accelerator
+- Raspberry Pi 5 Active cooler
+- AI HAT+ 2 / Hailo AI accelerator
 - Touchscreen display
 - USB microphone
 - Local speaker output
@@ -227,7 +213,7 @@ Near-term work:
 - Improve transcript inspection so real voice failures can be compared against typed evals.
 - Make audio device selection easier from the UI.
 - Package the launcher/runtime flow more cleanly for repeatable installs.
-Test stronger models once the Hailo Model Zoo expands its support for Hailo-optimized LLMs.
+- Test stronger models once the Hailo Model Zoo expands its support for Hailo-optimized LLMs.
 
 ## License
 MIT. See `LICENSE`.

@@ -1,15 +1,12 @@
 # Alfred Local Pi LLM
 
-<<<<<<< HEAD
 <p align="center">
-  <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="720">
+  <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="420">
+  <br>
+  <em>Alfred running on the touchscreen prototype.</em>
 </p>
 
 Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal is simple: make a small local device that can listen, think, and speak without depending on a cloud LLM.
-=======
-Alfred is an offline AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal was to make a small local device that can listen, think, and speak without depending on a cloud LLM.
->>>>>>> bfa1308c9d2c0a27202eb573a22f1393965242f8
-
 
 ## Current Status
 
@@ -21,7 +18,7 @@ Alfred currently supports:
 - Local text-to-speech through Piper.
 - Hailo/Ollama-compatible chat backend.
 - Streaming voice replies with sentence-level TTS playback.
-- Route-aware prompting for factual, reflective, social, audience, follow-up, non-sense, and current-info requests.
+- Route-aware prompting for factual, reflective, social, audience, follow-up, nonsense, and current-info requests.
 - Guardrails for live/current facts that cannot be verified offline.
 - Rolling memory with tighter boundaries so stale context does not leak into every answer.
 - Hardware and software health checks for the Pi, display, touch input, audio, Hailo device, and model server.
@@ -31,25 +28,32 @@ The project is still in active tuning. The biggest open area is balancing speed,
 
 ## Hardware Stack
 
-<p align="center">
-  <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="640">
-</p>
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="320">
+      <br>
+      <em>Raspberry Pi 5, Active Cooler, and AI HAT+ 2.</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="320">
+      <br>
+      <em>Hardware assembly during the build.</em>
+    </td>
+  </tr>
+</table>
 
 Validated target hardware:
 
 - Raspberry Pi 5
 - Raspberry Pi OS 64-bit
-- Raspberry Pi 5 Active cooler
+- Raspberry Pi 5 Active Cooler
 - AI HAT+ 2 / Hailo AI accelerator
 - Touchscreen display
 - USB microphone
 - Local speaker output
 
 Other setups may work, but audio device IDs, display configuration, and model server details may need environment overrides.
-
-<p align="center">
-  <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="640">
-</p>
 
 ## Software Stack
 

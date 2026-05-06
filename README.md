@@ -38,7 +38,7 @@ The project is still in active tuning. The biggest open area is balancing speed,
 ## Hardware Stack
 
 <p align="center">
-  <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="640">
+  <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="420">
 </p>
 
 Validated target hardware:
@@ -52,10 +52,6 @@ Validated target hardware:
 - Local speaker output
 
 Other setups may work, but audio device IDs, display configuration, and model server details may need environment overrides.
-
-<p align="center">
-  <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="640">
-</p>
 
 ## Software Stack
 

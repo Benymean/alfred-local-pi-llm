@@ -1,5 +1,9 @@
 # Alfred Local Pi LLM
 
+<p align="center">
+  <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="720">
+</p>
+
 Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal is simple: make a small local device that can listen, think, and speak without depending on a cloud LLM.
 
 The project combines a local touchscreen web app, speech-to-text, a Hailo/Ollama-compatible model server, streaming replies, text-to-speech, health checks, and an evaluation loop for measuring answer quality and speed on real Pi hardware.
@@ -36,7 +40,11 @@ Alfred currently supports:
 
 The project is still in active tuning. The biggest open area is balancing speed, answer depth, and personality on a small local model.
 
-## Hardware Target
+## Hardware Stack
+
+<p align="center">
+  <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="640">
+</p>
 
 Validated target hardware:
 
@@ -48,6 +56,10 @@ Validated target hardware:
 - Local speaker output
 
 Other setups may work, but audio device IDs, display configuration, and model server details may need environment overrides.
+
+<p align="center">
+  <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="640">
+</p>
 
 ## Software Stack
 

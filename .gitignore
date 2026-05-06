@@ -36,6 +36,11 @@ snapshots/
 *.jpg
 *.png
 !alfred_touch_app/assets/favicon.png
+!docs/assets/
+!docs/assets/readme/
+!docs/assets/readme/*.jpg
+!docs/assets/readme/*.jpeg
+!docs/assets/readme/*.png
 
 # --- OS / Editor Clutter ---
 .DS_Store

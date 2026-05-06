@@ -2,15 +2,20 @@
 
 Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal is simple: make a small local device that can listen, think, and speak without depending on a cloud LLM.
 
-<<<<<<< HEAD
-<p align="center">
-  <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="720">
-</p>
-
-=======
-Alfred is an offline AI companion built for a Raspberry Pi 5 with a Hailo AI HAT+ 2. The goal was to make a small local device that can listen, think, and speak without depending on a cloud LLM.
->>>>>>> bfa1308c9d2c0a27202eb573a22f1393965242f8
-
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="100%">
+      <br>
+      <sub>Touch UI prototype</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="100%">
+      <br>
+      <sub>Pi and Hailo assembly</sub>
+    </td>
+  </tr>
+</table>
 
 ## Current Status
 

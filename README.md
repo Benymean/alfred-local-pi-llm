@@ -5,14 +5,14 @@ Alfred is an offline, touch-first AI companion built for a Raspberry Pi 5 with a
 <table>
   <tr>
     <td width="50%" align="center">
-      <img src="docs/assets/readme/alfred-touch-ui.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="100%">
+      <img src="docs/assets/readme/alfred-touch-ui-preview.jpg" alt="Alfred touchscreen prototype running on the local hardware build" width="100%">
       <br>
       <sub>Touch UI prototype</sub>
     </td>
     <td width="50%" align="center">
-      <img src="docs/assets/readme/alfred-pi-hailo-assembly.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT assembly during Alfred hardware setup" width="100%">
+      <img src="docs/assets/readme/alfred-hardware-stack-preview.jpeg" alt="Raspberry Pi 5 and Hailo AI HAT hardware stack for Alfred" width="100%">
       <br>
-      <sub>Pi and Hailo assembly</sub>
+      <sub>Pi and Hailo hardware stack</sub>
     </td>
   </tr>
 </table>
@@ -27,7 +27,7 @@ Alfred currently supports:
 - Local text-to-speech through Piper.
 - Hailo/Ollama-compatible chat backend.
 - Streaming voice replies with sentence-level TTS playback.
-- Route-aware prompting for factual, reflective, social, audience, follow-up, non-sense, and current-info requests.
+- Route-aware prompting for factual, reflective, social, audience, follow-up, nonsense, and current-info requests.
 - Guardrails for live/current facts that cannot be verified offline.
 - Rolling memory with tighter boundaries so stale context does not leak into every answer.
 - Hardware and software health checks for the Pi, display, touch input, audio, Hailo device, and model server.
@@ -35,17 +35,43 @@ Alfred currently supports:
 
 The project is still in active tuning. The biggest open area is balancing speed, answer depth, and personality on a small local model.
 
-## Hardware Stack
+## Measured Optimization Results
 
-<p align="center">
-  <img src="docs/assets/readme/alfred-hardware-stack.jpeg" alt="Raspberry Pi 5, active cooler, and Hailo AI HAT+ 2 hardware stack for Alfred" width="420">
-</p>
+Alfred was tuned with repeatable Pi eval runs instead of only manual testing. The benchmark loop records route selection, prompt size, first visible token, first speakable sentence, total response time, answer length, length stops, warnings, and per-case traces.
+
+Representative validation-suite results on the Raspberry Pi + Hailo setup:
+
+| Run | Suite | Prompts | First visible | First sentence | Total response | Prompt words | Length stops | Warnings |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Initial baseline | `validation` | 34 | 2.855s | 4.943s | 13.310s | 248.4 | 8 | 12 |
+| Routing + fast replies | `validation` | 34 | 1.543s | 2.681s | 6.624s | 246.1 | 1 | 1 |
+| Compact prompts | `validation` | 34 | 0.853s | 1.497s | 2.470s | 43.1 | 0 | 0 |
+
+From the initial baseline to the compact-prompt validation run:
+
+- First visible response improved by about 70%.
+- First speakable sentence improved by about 70%.
+- Average total response time improved by about 81%.
+- Average prompt size dropped by about 83%.
+- Length-limit stops dropped from 8 to 0.
+- Eval warnings dropped from 12 to 0 on the fixed validation suite.
+
+Quality work also added:
+
+- Current-info guardrails so Alfred does not pretend to know live weather, news, prices, stock availability, or current leaders while offline.
+- Route-specific handling for factual, reflective, social, audience, follow-up, malformed, and current-info prompts.
+- JSONL traces and Markdown reports so bad answers can be inspected case by case.
+- Generalization and social/demo suites to avoid tuning only for one fixed prompt set.
+
+Note: these results measure the full Alfred product path, not just raw model intelligence. Improvements came from prompt compaction, routing, streaming behavior, guardrails, and eval-driven tuning.
+
+## Hardware Stack
 
 Validated target hardware:
 
 - Raspberry Pi 5
 - Raspberry Pi OS 64-bit
-- Raspberry Pi 5 Active cooler
+- Raspberry Pi 5 Active Cooler
 - AI HAT+ 2 / Hailo AI accelerator
 - Touchscreen display
 - USB microphone
